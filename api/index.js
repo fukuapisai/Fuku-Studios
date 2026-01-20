@@ -40,6 +40,38 @@ app.get('/health', (req, res) => {
   res.status(200).json({ status: 'OK', service: 'FukuXyz API' });
 });
 
+// Tambahkan endpoint ini sebelum route catch-all (*)
+app.get('/api/tobase64', (req, res) => {
+    try {
+        const text = req.query.text;
+        
+        if (!text) {
+            return res.status(400).json({
+                success: false,
+                message: 'Parameter "text" diperlukan',
+                example: '/api/tobase64?text=halo'
+            });
+        }
+        
+        // Konversi teks ke base64
+        const base64String = Buffer.from(text).toString('base64');
+        
+        res.status(200).json({
+            success: true,
+            original: text,
+            base64: base64String,
+            length: base64String.length,
+            timestamp: new Date().toISOString()
+        });
+    } catch (error) {
+        console.error('Error converting to base64:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Terjadi kesalahan internal server'
+        });
+    }
+});
+
 // Jalankan server
 app.listen(PORT, () => {
   console.log(`🚀 FukuXyz website running on port ${PORT}`);
