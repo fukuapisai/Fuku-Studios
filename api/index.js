@@ -31,6 +31,8 @@ app.get('/health', (req, res) => {
   res.status(200).json({ status: 'OK', service: 'FukuXyz API' });
 });
 
+
+
 app.get('/api/tobase64', (req, res) => {
     try {
         const text = req.query.text;
@@ -136,7 +138,67 @@ app.get('/api/tiktok', async (req, res) => {
       message: error.message || 'Terjadi kesalahan internal server'
     })
   }
-})
+});
+
+app.get('/api/turboseek', async (req, res) => {
+  try {
+    const question = req.query.teks
+    
+    if (!question) {
+      return res.status(400).json({
+        status: false,
+        message: 'Parameter "teks" diperlukan',
+        example: '/api/turboseek?teks=What is LLM?'
+      })
+    }
+    
+    // Fungsi turboseek langsung di sini
+    const turboseek = async (question) => {
+      const inst = axios.create({
+        baseURL: 'https://www.turboseek.io/api',
+        headers: {
+          origin: 'https://www.turboseek.io',
+          referer: 'https://www.turboseek.io/',
+          'user-agent': 'Mozilla/5.0 (Linux; Android 15; SM-F958 Build/AP3A.240905.015) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0.6723.86 Mobile Safari/537.36'
+        }
+      })
+      
+      const { data: sources } = await inst.post('/getSources', { question })
+      const { data: similarQuestions } = await inst.post('/getSimilarQuestions', { question, sources })
+      const { data: answer } = await inst.post('/getAnswer', { question, sources })
+      
+      const cleanAnswer = answer.match(/<p>(.*?)<\/p>/gs)?.map(match =>
+        match.replace(/<\/?p>/g, '')
+        .replace(/<\/?strong>/g, '')
+        .replace(/<\/?em>/g, '')
+        .replace(/<\/?b>/g, '')
+        .replace(/<\/?i>/g, '')
+        .replace(/<\/?u>/g, '')
+        .replace(/<\/?[^>]+(>|$)/g, '')
+        .trim()
+      ).join('\n\n') || answer.replace(/<\/?[^>]+(>|$)/g, '').trim()
+      
+      return { status: true, answer: cleanAnswer, sources: sources.map(s => s.url), similarQuestions }
+    }
+    
+    const result = await turboseek(question)
+    
+    res.status(200).json({
+      status: true,
+      creator: 'AhmadXyz',
+      api: 'fuku',
+      result: result,
+      timestamp: new Date().toISOString()
+    })
+  } catch (error) {
+    res.status(500).json({
+      status: false,
+      creator: 'AhmadXyz',
+      api: 'fuku',
+      message: error.message
+    })
+  }
+});
 
 
 async function dolphinai(question, { template = 'logical' } = {}) {
@@ -199,6 +261,9 @@ app.get('/api/dolphin', async (req, res) => {
     })
   }
 })
+
+
+
 
 app.listen(PORT, () => {
   console.log(`Web Siap Meluncur Abang kuh${PORT}`);
