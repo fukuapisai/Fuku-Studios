@@ -6,16 +6,20 @@ const axios = require('axios')
 const cors = require('cors');
 const app = express();
 const PORT = process.env.PORT || 3000;
+
 app.use(cors());
 app.use(bodyParser.json());
 app.use(express.static(path.join(__dirname, '../public')));
+
 app.post('/contact', (req, res) => {
   const { name, email, message } = req.body;
+  
   console.log('=== CONTACT FORM SUBMISSION ===');
   console.log(`Name: ${name}`);
   console.log(`Email: ${email}`);
   console.log(`Message: ${message}`);
   console.log('=============================');
+  
   res.status(200).json({
     success: true,
     message: 'Pesan berhasil dikirim! Kami akan menghubungi Anda dalam 1-2 hari kerja.',
@@ -30,8 +34,6 @@ app.get('/', (req, res) => {
 app.get('/health', (req, res) => {
   res.status(200).json({ status: 'OK', service: 'FukuXyz API' });
 });
-
-
 
 app.get('/api/tobase64', (req, res) => {
     try {
@@ -62,7 +64,6 @@ app.get('/api/tobase64', (req, res) => {
         });
     }
 });
-
 
 const k = {
   enc: "GJvE5RZIxrl9SuNrAtgsvCfWha3M7NGC",
@@ -152,7 +153,6 @@ app.get('/api/turboseek', async (req, res) => {
       })
     }
     
-    // Fungsi turboseek langsung di sini
     const turboseek = async (question) => {
       const inst = axios.create({
         baseURL: 'https://www.turboseek.io/api',
@@ -199,7 +199,6 @@ app.get('/api/turboseek', async (req, res) => {
     })
   }
 });
-
 
 async function dolphinai(question, { template = 'logical' } = {}) {
   const templates = ['logical', 'creative', 'summarize', 'code-beginner', 'code-advanced']
@@ -261,9 +260,6 @@ app.get('/api/dolphin', async (req, res) => {
     })
   }
 })
-
-
-
 
 app.listen(PORT, () => {
   console.log(`Web Siap Meluncur Abang kuh${PORT}`);
