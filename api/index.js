@@ -138,6 +138,68 @@ app.get('/api/tiktok', async (req, res) => {
   }
 })
 
+
+async function dolphinai(question, { template = 'logical' } = {}) {
+  const templates = ['logical', 'creative', 'summarize', 'code-beginner', 'code-advanced']
+  if (!question) throw new Error('Question is required.')
+  if (!templates.includes(template)) throw new Error(`Available templates: ${templates.join(', ')}.`)
+
+  const { data } = await axios.post('https://chat.dphn.ai/api/chat', {
+    messages: [{ role: 'user', content: question }],
+    model: 'dolphinserver:24B',
+    template: template
+  }, {
+    headers: {
+      origin: 'https://chat.dphn.ai',
+      referer: 'https://chat.dphn.ai/',
+      'user-agent': 'Mozilla/5.0 (Linux; Android 15; SM-F958 Build/AP3A.240905.015) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0.6723.86 Mobile Safari/537.36'
+    }
+  })
+
+  const result = data
+    .split('\n\n')
+    .filter(line => line && line.startsWith('data: {'))
+    .map(line => JSON.parse(line.substring(6)))
+    .map(line => line.choices[0].delta.content)
+    .join('')
+
+  if (!result) throw new Error('No result found.')
+  return { status: true, result }
+}
+
+app.get('/api/dolphin', async (req, res) => {
+  try {
+    const question = req.query.teks
+    const template = req.query.otak || 'logical'
+
+    if (!question) {
+      return res.status(400).json({
+        status: false,
+        message: 'Parameter "teks" diperlukan',
+        example: '/api/dolphin?teks=Halo&otak=logical'
+      })
+    }
+
+    const result = await dolphinai(question, { template })
+
+    res.status(200).json({
+      status: true,
+      creator: 'AhmadXyz',
+      api: 'fuku',
+      template: template,
+      result: result.result,
+      timestamp: new Date().toISOString()
+    })
+  } catch (error) {
+    res.status(500).json({
+      status: false,
+      creator: 'AhmadXyz',
+      api: 'fuku',
+      message: error.message
+    })
+  }
+})
+
 app.listen(PORT, () => {
   console.log(`Web Siap Meluncur Abang kuh${PORT}`);
   console.log(`🔗 http://localhost:${PORT}`);
