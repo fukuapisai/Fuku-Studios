@@ -1,16 +1,16 @@
 {
   "company": {
     "name": "FukuXyz",
-    "tagline": "AI Enterprise Solutions",
-    "contactEmail": "contact@fukuxyz.ai",
-    "phone": "+1 (555) 123-4567",
-    "address": "123 AI Innovation Drive, San Francisco, CA 94107"
+    "tagline": "Web Api",
+    "contactEmail": "fukuapifeedback@gmail.com",
+    "phone": "+6281527100923",
+    "address": "Pinrang - Sulawesi Selatan, Indonesia"
   },
   "website": {
-    "title": "FukuXyz - AI Enterprise Solutions",
-    "description": "Leading AI technology company specializing in enterprise-grade artificial intelligence solutions.",
-    "keywords": "AI, Artificial Intelligence, Machine Learning, Enterprise Solutions, Technology, Automation",
-    "author": "FukuXyz Team"
+    "title": "Fuku Solution APIs",
+    "description": "Endpoint Sederhana Untuk Mengembangkan Project Kamu",
+    "keywords": "Fuku, Ahmadxyz, web api, Tiktok Downloader, SQL Injection, Ai",
+    "author": "AhmadXyz"
   },
   "features": {
     "contactForm": true,
