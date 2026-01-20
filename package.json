@@ -1,0 +1,20 @@
+{
+  "name": "fukuXyz-website",
+  "version": "1.0.0",
+  "description": "Website perusahaan teknologi AI FukuXyz",
+  "main": "api/index.js",
+  "scripts": {
+    "dev": "node api/index.js",
+    "start": "node api/index.js"
+  },
+  "dependencies": {
+    "express": "^4.18.2",
+    "cors": "^2.8.5",
+    "body-parser": "^1.20.2"
+  },
+  "engines": {
+    "node": ">=16.0.0"
+  },
+  "author": "FukuXyz Team",
+  "license": "MIT"
+}
