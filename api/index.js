@@ -1,6 +1,9 @@
 const express = require('express');
 const path = require('path');
 const bodyParser = require('body-parser');
+const crypto = require('crypto')
+const axios = require('axios')
+
 const cors = require('cors');
 
 const app = express();
@@ -71,6 +74,84 @@ app.get('/api/tobase64', (req, res) => {
         });
     }
 });
+
+
+const k = {
+  enc: "GJvE5RZIxrl9SuNrAtgsvCfWha3M7NGC",
+  dec: "H3quWdWoHLX5bZSlyCYAnvDFara25FIu"
+}
+
+const cryptoProc = (type, data) => {
+  const key = Buffer.from(k[type])
+  const iv = Buffer.from(k[type].slice(0, 16))
+  const cipher = (type === 'enc' ? crypto.createCipheriv : crypto.createDecipheriv)(
+    'aes-256-cbc',
+    key,
+    iv
+  )
+  let rchipher = cipher.update(
+    data,
+    ...(type === 'enc' ? ['utf8', 'base64'] : ['base64', 'utf8'])
+  )
+  rchipher += cipher.final(type === 'enc' ? 'base64' : 'utf8')
+  return rchipher
+}
+
+async function tiktokDl(url) {
+  if (!/tiktok\.com/.test(url)) throw new Error('Invalid url.')
+
+  const { data } = await axios.post(
+    'https://savetik.app/requests',
+    { bdata: cryptoProc('enc', url) },
+    {
+      headers: {
+        'User-Agent': 'Mozilla/5.0 (Android 16; Mobile; SM-D639N; rv:130.0) Gecko/130.0 Firefox/130.0',
+        'Content-Type': 'application/json'
+      }
+    }
+  )
+
+  if (!data || data.status !== 'success') throw new Error('Fetch failed.')
+
+  return {
+    author: data.username,
+    thumbnail: data.thumbnailUrl,
+    video: cryptoProc('dec', data.data),
+    audio: data.mp3
+  }
+}
+
+app.get('/api/tiktok', async (req, res) => {
+  try {
+    const url = req.query.url
+
+    if (!url) {
+      return res.status(400).json({
+        status: false,
+        message: 'Parameter "url" diperlukan',
+        example: '/api/tiktok?url=https://vt.tiktok.com/xxxx'
+      })
+    }
+
+    const result = await tiktokDl(url)
+
+    res.status(200).json({
+      status: true,
+      creator: 'AhmadXyz',
+      api: 'fuku',
+      result: result,
+      timestamp: new Date().toISOString()
+    })
+
+  } catch (error) {
+    res.status(500).json({
+      status: false,
+      creator: 'AhmadXyz',
+      api: 'fuku',
+      message: error.message || 'Terjadi kesalahan internal server'
+    })
+  }
+})
 
 // Jalankan server
 app.listen(PORT, () => {
