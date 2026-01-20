@@ -152,28 +152,60 @@ Fuku APIs menyediakan layanan API gratis dan cepat untuk membangun aplikasi mode
                     <div class="fx-service-icon">
                         <i class="fas fa-cogs"></i>
                     </div>
-                    <h3 class="fx-service-title">Custom AI Development</h3>
-                    <p class="fx-service-desc">Build bespoke AI models and applications designed specifically for your unique business challenges.</p>
+<h3 class="fx-service-title">Sistem Integrasi Endpoint</h3>
+<p class="fx-service-desc">
+    Setiap endpoint memiliki pengaturan parameter terpusat yang dikelola melalui path <code>/api/endpoint</code>,
+    memungkinkan konfigurasi request, autentikasi, dan validasi data dilakukan secara konsisten dan terstruktur.
+</p>
                     <ul class="fx-service-features">
-                        <li>Custom Machine Learning Models</li>
-                        <li>Data Pipeline Architecture</li>
-                        <li>Model Deployment & Integration</li>
+  <li>
+    Custom Machine Learning Models  
+    <br>
+    Model dapat dipanggil melalui endpoint dengan parameter khusus seperti <code>?text=</code>, <code>?prompt=</code>, atau <code>?mode=</code> yang akan diproses dan dibungkus dalam satu hasil respon.
+  </li>
+
+  <li>
+    Data Pipeline Architecture  
+    <br>
+    Setiap parameter seperti <code>?url=</code>, <code>?format=</code>, atau <code>?type=</code> akan melewati alur pipeline data sebelum diproses dan digabungkan ke dalam struktur result.
+  </li>
+
+  <li>
+    Model Deployment & Integration  
+    <br>
+    Endpoint mendukung pemanggilan dengan berbagai parameter query yang akan divalidasi, dieksekusi oleh model, dan dikembalikan dalam satu format respon terstandarisasi.
+  </li>
                     </ul>
-                    <a href="#contact" class="fx-service-link">Learn More →</a>
+                    <a href="#contact" class="fx-service-link">Lihat→</a>
                 </div>
                 
                 <div class="fx-service-card">
                     <div class="fx-service-icon">
                         <i class="fas fa-cloud"></i>
                     </div>
-                    <h3 class="fx-service-title">AI Cloud Infrastructure</h3>
-                    <p class="fx-service-desc">Deploy and manage scalable AI infrastructure on our secure, high-performance cloud platform.</p>
-                    <ul class="fx-service-features">
-                        <li>Managed GPU Clusters</li>
-                        <li>Auto-scaling AI Workloads</li>
-                        <li>Enterprise Security & Compliance</li>
+                    <h3 class="fx-service-title">Penyimpanan Data</h3>
+<p class="fx-service-desc">
+Jalankan dan kelola infrastruktur Endpoint yang skalabel di platform cloud berperforma tinggi, dengan pemrosesan data sementara tanpa penyimpanan permanen untuk menjaga privasi dan efisiensi.
+</p>                    <ul class="fx-service-features">
+  <li>
+    Managed GPU Clusters  
+    <br>
+    Setiap permintaan diproses pada klaster GPU terkelola, dengan hasil yang dikembalikan dalam format JSON, baik dalam kondisi berhasil maupun error.
+  </li>
+
+  <li>
+    Auto-scaling AI Workloads  
+    <br>
+    Sistem akan menyesuaikan beban kerja secara otomatis, di mana struktur respon JSON dapat berubah sesuai status pemrosesan dan kapasitas sistem.
+  </li>
+
+  <li>
+    Enterprise Security & Compliance  
+    <br>
+    Setiap respon, termasuk pesan error dan status gagal, dikembalikan dalam format JSON terstandarisasi untuk memastikan keamanan dan konsistensi integrasi.
+  </li>
                     </ul>
-                    <a href="#contact" class="fx-service-link">Learn More →</a>
+                    <a href="#contact" class="fx-service-link">Lihat→</a>
                 </div>
             </div>
         </div>
@@ -183,13 +215,14 @@ Fuku APIs menyediakan layanan API gratis dan cepat untuk membangun aplikasi mode
     <section class="fx-section" id="solutions">
         <div class="fx-container">
             <div class="fx-section-header">
-                <h2 class="fx-section-title">Enterprise <span class="fx-gradient-text">Solutions</span></h2>
-                <p class="fx-section-subtitle">Industry-specific AI solutions driving tangible business outcomes</p>
-            </div>
+                <h2 class="fx-section-title">Mungkin anda    <span class="fx-gradient-text"> Menyukai</span></h2>
+<p class="fx-section-subtitle">
+    Kami juga mengembangkan beberapa sistem bot. Silahkan cek di bawah ini
+</p>            </div>
             
             <div class="fx-solutions-tabs">
                 <div class="fx-tabs-header">
-                    <button class="fx-tab active" data-tab="finance">Financial Services</button>
+                    <button class="fx-tab active" data-tab="finance">Fuku Gen 2 WhatsApp</button>
                     <button class="fx-tab" data-tab="healthcare">Healthcare</button>
                     <button class="fx-tab" data-tab="retail">Retail & E-commerce</button>
                     <button class="fx-tab" data-tab="manufacturing">Manufacturing</button>
@@ -199,28 +232,29 @@ Fuku APIs menyediakan layanan API gratis dan cepat untuk membangun aplikasi mode
                     <div class="fx-tab-pane active" id="finance">
                         <div class="fx-solution-content">
                             <div class="fx-solution-text">
-                                <h3>AI-Powered Financial Intelligence</h3>
-                                <p>Transform financial operations with predictive analytics, fraud detection, and automated risk assessment systems.</p>
-                                <ul>
-                                    <li><i class="fas fa-check-circle"></i> Real-time fraud detection with 99.7% accuracy</li>
-                                    <li><i class="fas fa-check-circle"></i> Automated credit risk assessment</li>
-                                    <li><i class="fas fa-check-circle"></i> Algorithmic trading optimization</li>
-                                    <li><i class="fas fa-check-circle"></i> Regulatory compliance automation</li>
+                                <h3>Fuku Gen 2 WhatsApp</h3>
+<p>
+    Fuku Gen2 WhatsApp Bot adalah sistem bot generasi kedua yang berjalan di platform WhatsApp, dirancang untuk memproses perintah pengguna melalui pesan, mengeksekusi endpoint API, dan mengembalikan hasil dalam format respon terstruktur secara otomatis.
+</p>                                <ul>
+                                    <li><i class="fas fa-check-circle"></i> Fitur cocok untuk dipelajari untuk pemula</li>
+                                    <li><i class="fas fa-check-circle"></i> Sistem keamanan ketat</li>
+                                    <li><i class="fas fa-check-circle"></i> Memahami alogaritma penggunaan</li>
+                                    <li><i class="fas fa-check-circle"></i> 500+ Fitur Aktif</li>
                                 </ul>
                             </div>
                             <div class="fx-solution-visual">
                                 <div class="fx-solution-card">
-                                    <h4>Key Metrics Improved</h4>
+                                    <h4>Keunggulan</h4>
                                     <div class="fx-metric">
-                                        <span>Fraud Detection Rate</span>
-                                        <span class="fx-metric-value">+45%</span>
+                                        <span>Kecepatan Respon</span>
+                                        <span class="fx-metric-value">+97%</span>
                                     </div>
                                     <div class="fx-metric">
-                                        <span>Processing Time</span>
-                                        <span class="fx-metric-value">-68%</span>
+                                        <span>Proses Permintaan</span>
+                                        <span class="fx-metric-value">+68%</span>
                                     </div>
                                     <div class="fx-metric">
-                                        <span>Risk Assessment Accuracy</span>
+                                        <span>Fitur Ai Multi Fungsi</span>
                                         <span class="fx-metric-value">+32%</span>
                                     </div>
                                 </div>
@@ -268,25 +302,25 @@ Fuku APIs menyediakan layanan API gratis dan cepat untuk membangun aplikasi mode
     <section class="fx-section fx-section-alt" id="portfolio">
         <div class="fx-container">
             <div class="fx-section-header">
-                <h2 class="fx-section-title">Success <span class="fx-gradient-text">Stories</span></h2>
-                <p class="fx-section-subtitle">Real-world impact delivered to our enterprise partners</p>
+                <h2 class="fx-section-title">Sukses <span class="fx-gradient-text">Penggunaan</span></h2>
+                <p class="fx-section-subtitle">Nyata untuk pengembangan projek</p>
             </div>
             
             <div class="fx-portfolio-grid">
                 <div class="fx-portfolio-card">
                     <div class="fx-portfolio-header">
-                        <h3>Global Bank Fraud Prevention</h3>
-                        <span class="fx-portfolio-category">Financial Services</span>
+                        <h3>Penggunaan</h3>
+                        <span class="fx-portfolio-category">Ini hanya cerita</span>
                     </div>
-                    <p class="fx-portfolio-desc">Implemented an AI-powered fraud detection system that reduced false positives by 73% while increasing fraud detection accuracy by 45%.</p>
+                    <p class="fx-portfolio-desc">Lebih dari 15.000 pengguna diseluruh dunia telah menggunakan fuku.</p>
                     <div class="fx-portfolio-stats">
                         <div class="fx-portfolio-stat">
-                            <span class="fx-stat-value">$42M+</span>
-                            <span class="fx-stat-label">Fraud prevented annually</span>
+                            <span class="fx-stat-value">15K</span>
+                            <span class="fx-stat-label">Penggunaan</span>
                         </div>
                         <div class="fx-portfolio-stat">
                             <span class="fx-stat-value">73%</span>
-                            <span class="fx-stat-label">Reduction in false positives</span>
+                            <span class="fx-stat-label">Pengguna kembali ±4 bulan terakhir.</span>
                         </div>
                     </div>
                 </div>
