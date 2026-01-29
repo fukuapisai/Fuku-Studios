@@ -35,6 +35,49 @@ app.get('/health', (req, res) => {
   res.status(200).json({ status: 'OK', service: 'FukuXyz API' });
 });
 
+app.get("/api/fukucek", async (req, res) => {
+  const trxId = req.query.transactionId;
+
+  if (!trxId) {
+    return res.status(400).json({
+      status: false,
+      message: 'Missing "transactionId" query parameter'
+    });
+  }
+
+  // Hardcode license
+  const licensex = "cashify_9720b6cfc9513ad38ed60f410ccefe3571926c2037534f66c707d44fcb827fa4";
+
+  try {
+    const { data } = await axios.post(
+      "https://cashify.my.id/api/generate/check-status",
+      { transactionId: trxId },
+      {
+        headers: {
+          "x-license-key": licensex,
+          "content-type": "application/json"
+        }
+      }
+    );
+
+    // Balikan sesuai Cashify
+    res.json({
+      status: true,
+      transactionId: data.data.transactionId,
+      amount: data.data.amount,
+      paymentStatus: data.data.status, // pending / paid
+      expiredAt: data.data.expiredAt
+    });
+
+  } catch (err) {
+    res.status(500).json({
+      status: false,
+      message: "Failed to check payment status",
+      error: err.response?.data || err.message
+    });
+  }
+});
+
 app.get("/api/gateaway", async (req, res) => {
   const harga = req.query.harga;
 
