@@ -35,6 +35,59 @@ app.get('/health', (req, res) => {
   res.status(200).json({ status: 'OK', service: 'FukuXyz API' });
 });
 
+app.get("/api/gateaway", async (req, res) => {
+  const harga = req.query.harga;
+
+  if (!harga) {
+    return res.status(400).json({
+      status: false,
+      message: 'Missing "harga" query parameter'
+    });
+  }
+
+  // Hardcode license dan id QRIS
+  const license = "cashify_9720b6cfc9513ad38ed60f410ccefe3571926c2037534f66c707d44fcb827fa4";
+  const qrisId = "353809a2-cfc8-4e99-8560-aa98dd7c15cc";
+
+  try {
+    const { data } = await axios.post(
+      "https://cashify.my.id/api/generate/qris",
+      {
+        id: qrisId,
+        amount: Number(harga),
+        useUniqueCode: true,
+        packageIds: ["id.dana"],
+        expiredInMinutes: 15
+      },
+      {
+        headers: {
+          "x-license-key": license,
+          "content-type": "application/json"
+        }
+      }
+    );
+
+    res.json({
+      status: true,
+      gateway: "Cashify",
+      qr_string: data.data.qr_string,
+      transactionId: data.data.transactionId,
+      originalAmount: data.data.originalAmount,
+      totalAmount: data.data.totalAmount,
+      uniqueNominal: data.data.uniqueNominal,
+      packageIds: data.data.packageIds
+    });
+
+  } catch (err) {
+    res.status(500).json({
+      status: false,
+      message: "Failed to create QRIS payment",
+      error: err.response?.data || err.message
+    });
+  }
+});
+
+
 app.get('/api/tobase64', (req, res) => {
     try {
         const text = req.query.text;
