@@ -30,7 +30,15 @@ const validateApiKey = (req, res, next) => {
   const apiKey = req.query.api || req.headers['x-api-key'];
   
   // Endpoint yang tidak memerlukan API key
-  const publicEndpoints = ['/', '/contact', '/health', '/api/createapikey', '/api/cekapikey', '/api/resetlimit'];
+const publicEndpoints = [
+  '/', 
+  '/contact', 
+  '/health', 
+  '/api/createapikey', 
+  '/api/cekapikey', 
+  '/api/resetlimit',
+  '/api/listkeys'  // ← TAMBAHKAN INI
+];
   if (publicEndpoints.includes(req.path)) {
     return next();
   }
