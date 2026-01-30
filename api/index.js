@@ -1,23 +1,298 @@
 const express = require('express');
 const path = require('path');
 const bodyParser = require('body-parser');
-const crypto = require('crypto')
-const axios = require('axios')
+const crypto = require('crypto');
+const axios = require('axios');
 const cors = require('cors');
-const { Resend } = require("resend")
+const { Resend } = require("resend");
+
 const app = express();
 const PORT = process.env.PORT || 3000;
 
+// Admin API key (unlimited) - gunakan environment variable di Vercel
+const ADMIN_API_KEY = process.env.ADMIN_API_KEY || 'fukuapikeysunli';
+
+// Resend API key
+const RESEND_API_KEY = process.env.RESEND_API_KEY || "re_B5xCbPen_KEPNN6Gnyu6YEHHEP6MNxUrD";
+
+// Inisialisasi API keys menggunakan memory storage (Vercel tidak persistent file system)
+let apiKeys = {};
+
+// Middleware untuk CORS
 app.use(cors());
 app.use(bodyParser.json());
-app.use(express.static(path.join(__dirname, '../public')));
 
+// Serve static files dari public folder jika ada
+app.use(express.static(path.join(__dirname, 'public')));
 
-// pasang API key resend kamu
+// Middleware untuk validasi API key
+const validateApiKey = (req, res, next) => {
+  const apiKey = req.query.api || req.headers['x-api-key'];
+  
+  // Endpoint yang tidak memerlukan API key
+  const publicEndpoints = ['/', '/contact', '/health', '/api/createapikey', '/api/cekapikey', '/api/resetlimit'];
+  if (publicEndpoints.includes(req.path)) {
+    return next();
+  }
+  
+  if (!apiKey) {
+    return res.status(401).json({
+      status: false,
+      message: 'API key diperlukan. Gunakan parameter ?api=API_KEY atau header x-api-key'
+    });
+  }
+  
+  // Cek apakah API key admin
+  if (apiKey === ADMIN_API_KEY) {
+    req.isAdmin = true;
+    return next();
+  }
+  
+  // Cek API key user
+  const userKey = apiKeys[apiKey];
+  if (!userKey) {
+    return res.status(401).json({
+      status: false,
+      message: 'API key tidak valid atau tidak ditemukan'
+    });
+  }
+  
+  // Cek limit
+  if (userKey.remaining <= 0) {
+    return res.status(403).json({
+      status: false,
+      message: 'API key limit habis',
+      remaining: 0,
+      totalLimit: userKey.limit
+    });
+  }
+  
+  // Kurangi limit
+  userKey.remaining--;
+  userKey.totalUsed++;
+  userKey.lastUsed = new Date().toISOString();
+  
+  // Simpan riwayat penggunaan (maksimal 10 riwayat)
+  if (!userKey.usageHistory) {
+    userKey.usageHistory = [];
+  }
+  userKey.usageHistory.push({
+    endpoint: req.path,
+    timestamp: new Date().toISOString(),
+    ip: req.ip || req.headers['x-forwarded-for'] || 'unknown'
+  });
+  
+  // Hanya simpan 10 riwayat terakhir
+  if (userKey.usageHistory.length > 10) {
+    userKey.usageHistory = userKey.usageHistory.slice(-10);
+  }
+  
+  req.apiKeyInfo = userKey;
+  req.isAdmin = false;
+  next();
+};
 
+app.use(validateApiKey);
+
+// Helper untuk response dengan usage info
+const responseWithUsage = (req, data) => {
+  if (req.isAdmin) {
+    return { ...data, usageInfo: 'Admin (Unlimited)' };
+  } else if (req.apiKeyInfo) {
+    return { 
+      ...data, 
+      usageInfo: {
+        remaining: req.apiKeyInfo.remaining,
+        limit: req.apiKeyInfo.limit,
+        totalUsed: req.apiKeyInfo.totalUsed
+      }
+    };
+  }
+  return data;
+};
+
+// Endpoint untuk membuat API key baru
+app.get('/api/createapikey', (req, res) => {
+  const { keys, apikeyAdmin } = req.query;
+  
+  if (!apikeyAdmin) {
+    return res.status(400).json({
+      status: false,
+      message: 'Parameter apikeyAdmin diperlukan'
+    });
+  }
+  
+  if (apikeyAdmin !== ADMIN_API_KEY) {
+    return res.status(403).json({
+      status: false,
+      message: 'API key admin tidak valid'
+    });
+  }
+  
+  if (!keys) {
+    return res.status(400).json({
+      status: false,
+      message: 'Parameter keys diperlukan (nama untuk API key)'
+    });
+  }
+  
+  // Generate API key yang unik
+  const generateApiKey = () => {
+    const timestamp = Date.now().toString(36);
+    const random = crypto.randomBytes(6).toString('hex');
+    return `fuku_${timestamp}_${random}`;
+  };
+  
+  const apiKey = generateApiKey();
+  const now = new Date();
+  
+  // Simpan API key baru
+  apiKeys[apiKey] = {
+    name: keys,
+    created: now.toISOString(),
+    limit: 10,
+    remaining: 10,
+    totalUsed: 0,
+    usageHistory: [],
+    lastUsed: null
+  };
+  
+  res.status(200).json({
+    status: true,
+    message: 'API key berhasil dibuat',
+    apiKey: apiKey,
+    info: {
+      name: keys,
+      limit: 10,
+      remaining: 10,
+      created: now.toLocaleString(),
+      exampleUsage: `/api/tiktok?url=...&api=${apiKey}`,
+      note: 'API keys disimpan di memory (akan hilang saat server restart)'
+    }
+  });
+});
+
+// Endpoint untuk cek info API key
+app.get('/api/cekapikey', (req, res) => {
+  const { api } = req.query;
+  
+  if (!api) {
+    return res.status(400).json({
+      status: false,
+      message: 'Parameter api diperlukan'
+    });
+  }
+  
+  // Cek apakah API key admin
+  if (api === ADMIN_API_KEY) {
+    return res.status(200).json({
+      status: true,
+      isAdmin: true,
+      message: 'API Key Admin (Unlimited)',
+      totalUserKeys: Object.keys(apiKeys).length,
+      environment: process.env.NODE_ENV || 'development'
+    });
+  }
+  
+  // Cek API key user
+  const userKey = apiKeys[api];
+  if (!userKey) {
+    return res.status(404).json({
+      status: false,
+      message: 'API key tidak ditemukan'
+    });
+  }
+  
+  const percentageUsed = ((userKey.totalUsed || 0) / userKey.limit) * 100;
+  
+  res.status(200).json({
+    status: true,
+    isAdmin: false,
+    apiKey: api,
+    info: {
+      name: userKey.name,
+      created: new Date(userKey.created).toLocaleString(),
+      lastUsed: userKey.lastUsed ? new Date(userKey.lastUsed).toLocaleString() : 'Belum pernah digunakan',
+      limit: userKey.limit,
+      remaining: userKey.remaining,
+      totalUsed: userKey.totalUsed || 0,
+      percentageUsed: `${percentageUsed.toFixed(1)}%`,
+      usageHistory: (userKey.usageHistory || []).slice(-5), // 5 penggunaan terakhir
+      note: 'Data disimpan di memory server'
+    }
+  });
+});
+
+// Endpoint untuk reset limit (admin only)
+app.get('/api/resetlimit', (req, res) => {
+  const { api, apikeyAdmin } = req.query;
+  
+  if (!apikeyAdmin || apikeyAdmin !== ADMIN_API_KEY) {
+    return res.status(403).json({
+      status: false,
+      message: 'Hanya admin yang bisa reset limit'
+    });
+  }
+  
+  if (!api) {
+    return res.status(400).json({
+      status: false,
+      message: 'Parameter api diperlukan'
+    });
+  }
+  
+  const userKey = apiKeys[api];
+  if (!userKey) {
+    return res.status(404).json({
+      status: false,
+      message: 'API key tidak ditemukan'
+    });
+  }
+  
+  // Reset limit
+  userKey.remaining = userKey.limit;
+  
+  res.status(200).json({
+    status: true,
+    message: 'Limit berhasil direset',
+    apiKey: api,
+    remaining: userKey.remaining,
+    limit: userKey.limit,
+    note: 'Reset hanya berlaku selama server berjalan'
+  });
+});
+
+// Endpoint untuk lihat semua API keys (admin only)
+app.get('/api/listkeys', (req, res) => {
+  const { apikeyAdmin } = req.query;
+  
+  if (!apikeyAdmin || apikeyAdmin !== ADMIN_API_KEY) {
+    return res.status(403).json({
+      status: false,
+      message: 'Hanya admin yang bisa melihat semua keys'
+    });
+  }
+  
+  const keysList = Object.entries(apiKeys).map(([key, data]) => ({
+    key,
+    name: data.name,
+    created: data.created,
+    remaining: data.remaining,
+    totalUsed: data.totalUsed || 0,
+    lastUsed: data.lastUsed
+  }));
+  
+  res.status(200).json({
+    status: true,
+    totalKeys: keysList.length,
+    keys: keysList
+  });
+});
+
+// Contact form endpoint
 app.post('/contact', async (req, res) => {
   const { name, email, message } = req.body;
-const resend = new Resend("re_B5xCbPen_KEPNN6Gnyu6YEHHEP6MNxUrD");
+  const resend = new Resend(RESEND_API_KEY);
 
   console.log('=== CONTACT FORM SUBMISSION ===');
   console.log(`Name: ${name}`);
@@ -27,8 +302,8 @@ const resend = new Resend("re_B5xCbPen_KEPNN6Gnyu6YEHHEP6MNxUrD");
 
   try {
     await resend.emails.send({
-      from: "Contact Form <OFFICIAL@fukushima-offc.biz.id>",
-      to: "sigmaskibidilbk@gmail.com", // tujuan tetap
+      from: "Contact Form <onboarding@resend.dev>",
+      to: "sigmaskibidilbk@gmail.com",
       subject: "Pesan Baru dari Contact Form",
       html: `
         <div style="font-family:Arial;background:#f2f2f2;padding:20px">
@@ -64,38 +339,66 @@ const resend = new Resend("re_B5xCbPen_KEPNN6Gnyu6YEHHEP6MNxUrD");
   }
 });
 
+// Home endpoint
 app.get('/', (req, res) => {
-  res.sendFile(path.join(__dirname, '../public/index.html'));
+  res.json({
+    service: 'FukuXyz API',
+    version: '1.0.0',
+    status: 'Online',
+    endpoints: [
+      '/api/createapikey - Buat API key baru (admin only)',
+      '/api/cekapikey - Cek info API key',
+      '/api/resetlimit - Reset limit (admin only)',
+      '/api/tiktok - Download TikTok video',
+      '/api/turboseek - Search engine AI',
+      '/api/dolphin - AI Chat',
+      '/api/tobase64 - Convert text to base64',
+      '/api/gateaway - Payment gateway',
+      '/api/fukucek - Check payment status',
+      '/api/message - Send email message',
+      '/contact - Contact form (POST)',
+      '/health - Health check'
+    ],
+    note: 'Semua endpoint /api/... memerlukan API key'
+  });
 });
 
+// Health check endpoint
 app.get('/health', (req, res) => {
-  res.status(200).json({ status: 'OK', service: 'FukuXyz API' });
+  res.status(200).json({ 
+    status: 'OK', 
+    service: 'FukuXyz API',
+    environment: process.env.NODE_ENV || 'development',
+    uptime: process.uptime(),
+    memory: process.memoryUsage(),
+    totalApiKeys: Object.keys(apiKeys).length
+  });
 });
 
+// API Endpoints (yang memerlukan API key)
 
 app.get("/api/message", async (req, res) => {
-  const { email, pesan } = req.query
+  const { email, pesan } = req.query;
 
   if (!email || !pesan) {
     return res.status(400).json({
       status: false,
       message: 'Parameter "email" dan "pesan" wajib diisi'
-    })
+    });
   }
 
   if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
     return res.status(400).json({
       status: false,
       message: "Format email tidak valid"
-    })
+    });
   }
 
-  // API key Resend dipasang langsung di sini
-  const resend = new Resend("re_B5xCbPen_KEPNN6Gnyu6YEHHEP6MNxUrD")
+  const resend = new Resend(RESEND_API_KEY);
 
   try {
     await resend.emails.send({
-      from: "Fukushima Official <OFFICIAL@fukushima-offc.biz.id>",
+      from: "Fukushima Official <onboarding@resend.dev>",
       to: email,
       subject: "Pesan Baru",
       html: `
@@ -108,23 +411,22 @@ app.get("/api/message", async (req, res) => {
           </div>
         </div>
       `
-    })
+    });
 
-    return res.json({
+    return res.json(responseWithUsage(req, {
       status: true,
       message: "Pesan berhasil dikirim",
       email
-    })
+    }));
 
   } catch (err) {
     return res.status(500).json({
       status: false,
       message: "Gagal mengirim email",
       error: err.message
-    })
+    });
   }
-})
-
+});
 
 app.get("/api/fukucek", async (req, res) => {
   const trxId = req.query.transactionId;
@@ -151,14 +453,13 @@ app.get("/api/fukucek", async (req, res) => {
       }
     );
 
-    // Balikan sesuai Cashify
-    res.json({
+    res.json(responseWithUsage(req, {
       status: true,
       transactionId: data.data.transactionId,
       amount: data.data.amount,
-      paymentStatus: data.data.status, // pending / paid
+      paymentStatus: data.data.status,
       expiredAt: data.data.expiredAt
-    });
+    }));
 
   } catch (err) {
     res.status(500).json({
@@ -201,7 +502,7 @@ app.get("/api/gateaway", async (req, res) => {
       }
     );
 
-    res.json({
+    res.json(responseWithUsage(req, {
       status: true,
       gateway: "Cashify",
       qr_string: data.data.qr_string,
@@ -210,7 +511,7 @@ app.get("/api/gateaway", async (req, res) => {
       totalAmount: data.data.totalAmount,
       uniqueNominal: data.data.uniqueNominal,
       packageIds: data.data.packageIds
-    });
+    }));
 
   } catch (err) {
     res.status(500).json({
@@ -221,60 +522,61 @@ app.get("/api/gateaway", async (req, res) => {
   }
 });
 
-
 app.get('/api/tobase64', (req, res) => {
-    try {
-        const text = req.query.text;
-        
-        if (!text) {
-            return res.status(400).json({
-                success: false,
-                message: 'Parameter "text" diperlukan',
-                example: '/api/tobase64?text=halo'
-            });
-        }
-        
-        const base64String = Buffer.from(text).toString('base64');
-        
-        res.status(200).json({
-            success: true,
-            original: text,
-            base64: base64String,
-            length: base64String.length,
-            timestamp: new Date().toISOString()
-        });
-    } catch (error) {
-        console.error('Error converting to base64:', error);
-        res.status(500).json({
-            success: false,
-            message: 'Terjadi kesalahan internal server'
-        });
+  try {
+    const text = req.query.text;
+    
+    if (!text) {
+      return res.status(400).json({
+        success: false,
+        message: 'Parameter "text" diperlukan',
+        example: '/api/tobase64?text=halo&api=API_KEY'
+      });
     }
+    
+    const base64String = Buffer.from(text).toString('base64');
+    
+    res.status(200).json(responseWithUsage(req, {
+      success: true,
+      original: text,
+      base64: base64String,
+      length: base64String.length,
+      timestamp: new Date().toISOString()
+    }));
+  } catch (error) {
+    console.error('Error converting to base64:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Terjadi kesalahan internal server'
+    });
+  }
 });
 
+// Crypto functions
 const k = {
   enc: "GJvE5RZIxrl9SuNrAtgsvCfWha3M7NGC",
   dec: "H3quWdWoHLX5bZSlyCYAnvDFara25FIu"
-}
+};
 
 const cryptoProc = (type, data) => {
-  const key = Buffer.from(k[type])
-  const iv = Buffer.from(k[type].slice(0, 16))
+  const key = Buffer.from(k[type]);
+  const iv = Buffer.from(k[type].slice(0, 16));
   const cipher = (type === 'enc' ? crypto.createCipheriv : crypto.createDecipheriv)(
     'aes-256-cbc',
     key,
     iv
-  )
+  );
   let rchipher = cipher.update(
     data,
     ...(type === 'enc' ? ['utf8', 'base64'] : ['base64', 'utf8'])
-  )
-  rchipher += cipher.final(type === 'enc' ? 'base64' : 'utf8')
-  return rchipher
-}
+  );
+  rchipher += cipher.final(type === 'enc' ? 'base64' : 'utf8');
+  return rchipher;
+};
 
+// TikTok download function
 async function tiktokDl(url) {
-  if (!/tiktok\.com/.test(url)) throw new Error('Invalid url.')
+  if (!/tiktok\.com/.test(url)) throw new Error('Invalid url.');
 
   const { data } = await axios.post(
     'https://savetik.app/requests',
@@ -285,38 +587,38 @@ async function tiktokDl(url) {
         'Content-Type': 'application/json'
       }
     }
-  )
+  );
 
-  if (!data || data.status !== 'success') throw new Error('Fetch failed.')
+  if (!data || data.status !== 'success') throw new Error('Fetch failed.');
 
   return {
     author: data.username,
     thumbnail: data.thumbnailUrl,
     video: cryptoProc('dec', data.data),
     audio: data.mp3
-  }
+  };
 }
 
 app.get('/api/tiktok', async (req, res) => {
   try {
-    const url = req.query.url
+    const url = req.query.url;
 
     if (!url) {
       return res.status(400).json({
         status: false,
         message: 'Parameter "url" diperlukan',
-        example: '/api/tiktok?url=https://vt.tiktok.com/xxxx'
-      })
+        example: '/api/tiktok?url=https://vt.tiktok.com/xxxx&api=API_KEY'
+      });
     }
 
-    const result = await tiktokDl(url)
-    res.status(200).json({
+    const result = await tiktokDl(url);
+    res.status(200).json(responseWithUsage(req, {
       status: true,
       creator: 'AhmadXyz',
       api: 'fuku',
       result: result,
       timestamp: new Date().toISOString()
-    })
+    }));
 
   } catch (error) {
     res.status(500).json({
@@ -324,20 +626,21 @@ app.get('/api/tiktok', async (req, res) => {
       creator: 'AhmadXyz',
       api: 'fuku',
       message: error.message || 'Terjadi kesalahan internal server'
-    })
+    });
   }
 });
 
+// Turboseek AI
 app.get('/api/turboseek', async (req, res) => {
   try {
-    const question = req.query.teks
+    const question = req.query.teks;
     
     if (!question) {
       return res.status(400).json({
         status: false,
         message: 'Parameter "teks" diperlukan',
-        example: '/api/turboseek?teks=What is LLM?'
-      })
+        example: '/api/turboseek?teks=What is LLM?&api=API_KEY'
+      });
     }
     
     const turboseek = async (question) => {
@@ -348,11 +651,11 @@ app.get('/api/turboseek', async (req, res) => {
           referer: 'https://www.turboseek.io/',
           'user-agent': 'Mozilla/5.0 (Linux; Android 15; SM-F958 Build/AP3A.240905.015) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0.6723.86 Mobile Safari/537.36'
         }
-      })
+      });
       
-      const { data: sources } = await inst.post('/getSources', { question })
-      const { data: similarQuestions } = await inst.post('/getSimilarQuestions', { question, sources })
-      const { data: answer } = await inst.post('/getAnswer', { question, sources })
+      const { data: sources } = await inst.post('/getSources', { question });
+      const { data: similarQuestions } = await inst.post('/getSimilarQuestions', { question, sources });
+      const { data: answer } = await inst.post('/getAnswer', { question, sources });
       
       const cleanAnswer = answer.match(/<p>(.*?)<\/p>/gs)?.map(match =>
         match.replace(/<\/?p>/g, '')
@@ -363,34 +666,35 @@ app.get('/api/turboseek', async (req, res) => {
         .replace(/<\/?u>/g, '')
         .replace(/<\/?[^>]+(>|$)/g, '')
         .trim()
-      ).join('\n\n') || answer.replace(/<\/?[^>]+(>|$)/g, '').trim()
+      ).join('\n\n') || answer.replace(/<\/?[^>]+(>|$)/g, '').trim();
       
-      return { status: true, answer: cleanAnswer, sources: sources.map(s => s.url), similarQuestions }
-    }
+      return { status: true, answer: cleanAnswer, sources: sources.map(s => s.url), similarQuestions };
+    };
     
-    const result = await turboseek(question)
+    const result = await turboseek(question);
     
-    res.status(200).json({
+    res.status(200).json(responseWithUsage(req, {
       status: true,
       creator: 'AhmadXyz',
       api: 'fuku',
       result: result,
       timestamp: new Date().toISOString()
-    })
+    }));
   } catch (error) {
     res.status(500).json({
       status: false,
       creator: 'AhmadXyz',
       api: 'fuku',
       message: error.message
-    })
+    });
   }
 });
 
+// Dolphin AI
 async function dolphinai(question, { template = 'logical' } = {}) {
-  const templates = ['logical', 'creative', 'summarize', 'code-beginner', 'code-advanced']
-  if (!question) throw new Error('Question is required.')
-  if (!templates.includes(template)) throw new Error(`Available templates: ${templates.join(', ')}.`)
+  const templates = ['logical', 'creative', 'summarize', 'code-beginner', 'code-advanced'];
+  if (!question) throw new Error('Question is required.');
+  if (!templates.includes(template)) throw new Error(`Available templates: ${templates.join(', ')}.`);
 
   const { data } = await axios.post('https://chat.dphn.ai/api/chat', {
     messages: [{ role: 'user', content: question }],
@@ -402,53 +706,60 @@ async function dolphinai(question, { template = 'logical' } = {}) {
       referer: 'https://chat.dphn.ai/',
       'user-agent': 'Mozilla/5.0 (Linux; Android 15; SM-F958 Build/AP3A.240905.015) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0.6723.86 Mobile Safari/537.36'
     }
-  })
+  });
 
   const result = data
     .split('\n\n')
     .filter(line => line && line.startsWith('data: {'))
     .map(line => JSON.parse(line.substring(6)))
     .map(line => line.choices[0].delta.content)
-    .join('')
+    .join('');
 
-  if (!result) throw new Error('No result found.')
-  return { status: true, result }
+  if (!result) throw new Error('No result found.');
+  return { status: true, result };
 }
 
 app.get('/api/dolphin', async (req, res) => {
   try {
-    const question = req.query.teks
-    const template = req.query.otak || 'logical'
+    const question = req.query.teks;
+    const template = req.query.otak || 'logical';
 
     if (!question) {
       return res.status(400).json({
         status: false,
         message: 'Parameter "teks" diperlukan',
-        example: '/api/dolphin?teks=Halo&otak=logical'
-      })
+        example: '/api/dolphin?teks=Halo&otak=logical&api=API_KEY'
+      });
     }
 
-    const result = await dolphinai(question, { template })
+    const result = await dolphinai(question, { template });
 
-    res.status(200).json({
+    res.status(200).json(responseWithUsage(req, {
       status: true,
       creator: 'AhmadXyz',
       api: 'fuku',
       template: template,
       result: result.result,
       timestamp: new Date().toISOString()
-    })
+    }));
   } catch (error) {
     res.status(500).json({
       status: false,
       creator: 'AhmadXyz',
       api: 'fuku',
       message: error.message
-    })
+    });
   }
-})
-
-app.listen(PORT, () => {
-  console.log(`Web Siap Meluncur Abang kuh${PORT}`);
-  console.log(`🔗 http://localhost:${PORT}`);
 });
+
+// Start server
+if (require.main === module) {
+  app.listen(PORT, () => {
+    console.log(`🚀 Server FukuXyz API running on port ${PORT}`);
+    console.log(`🔑 Admin Key: ${ADMIN_API_KEY}`);
+    console.log(`🌐 Environment: ${process.env.NODE_ENV || 'development'}`);
+  });
+}
+
+// Export untuk Vercel
+module.exports = app;
