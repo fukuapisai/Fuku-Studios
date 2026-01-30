@@ -125,9 +125,25 @@ function generateApiKey() {
   return `fuku_${timestamp}_${random}`;
 }
 
-function createKeyData(name) {
+function parseDuration(input) {
+  if (!input) return 60 * 60 * 1000;
+  
+  const match = input.toLowerCase().match(/(\d+)\s*(jam|hari|bulan)/);
+  if (!match) return 60 * 60 * 1000;
+  
+  const value = parseInt(match[1]);
+  const unit = match[2];
+  
+  if (unit === 'jam') return value * 60 * 60 * 1000;
+  if (unit === 'hari') return value * 24 * 60 * 60 * 1000;
+  if (unit === 'bulan') return value * 30 * 24 * 60 * 60 * 1000;
+  
+  return 60 * 60 * 1000;
+}
+
+function createKeyData(name, durationMs) {
   const now = new Date();
-  const resetAt = new Date(now.getTime() + 60 * 60 * 1000);
+  const resetAt = new Date(now.getTime() + durationMs);
   return {
     name: name,
     created: now.toISOString(),
@@ -136,36 +152,29 @@ function createKeyData(name) {
     totalUsed: 0,
     usageHistory: [],
     lastUsed: null,
-    resetAt: resetAt.toISOString()
+    resetAt: resetAt.toISOString(),
+    durationMs: durationMs
   };
 }
 
 app.get('/api/createapikey', (req, res) => {
-  const { keys, apikeyAdmin } = req.query;
+  const { keys, apikeyAdmin, waktu } = req.query;
   
   if (!apikeyAdmin) {
-    return res.status(400).json({
-      status: false,
-      message: 'Parameter apikeyAdmin diperlukan'
-    });
+    return res.status(400).json({ status: false, message: 'Parameter apikeyAdmin diperlukan' });
   }
   
   if (apikeyAdmin !== ADMIN_API_KEY) {
-    return res.status(403).json({
-      status: false,
-      message: 'API key admin tidak valid'
-    });
+    return res.status(403).json({ status: false, message: 'API key admin tidak valid' });
   }
   
   if (!keys) {
-    return res.status(400).json({
-      status: false,
-      message: 'Parameter keys diperlukan (nama untuk API key)'
-    });
+    return res.status(400).json({ status: false, message: 'Parameter keys diperlukan (nama untuk API key)' });
   }
   
+  const durationMs = parseDuration(waktu);
   const apiKey = generateApiKey();
-  apiKeys[apiKey] = createKeyData(keys);
+  apiKeys[apiKey] = createKeyData(keys, durationMs);
   
   const data = apiKeys[apiKey];
   
@@ -179,8 +188,9 @@ app.get('/api/createapikey', (req, res) => {
       remaining: data.remaining,
       created: new Date(data.created).toLocaleString(),
       resetAt: new Date(data.resetAt).toLocaleString(),
+      duration: waktu || '1jam (default)',
       exampleUsage: `/api/tiktok?url=...&api=${apiKey}`,
-      note: 'Limit 20 request per 1 jam, reset otomatis setelah 1 jam'
+      note: 'Limit akan reset otomatis sesuai waktu yang dipilih'
     }
   });
 });
