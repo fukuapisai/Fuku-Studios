@@ -506,7 +506,7 @@ app.get("/api/gateaway", async (req, res) => {
   if (!harga) {
     return res.status(400).json({
       status: false,
-      message: 'Missing "harga" query parameter'
+      message: 'Missing "harga" query param'
     });
   }
 
