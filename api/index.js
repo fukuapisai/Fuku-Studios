@@ -10,7 +10,7 @@ const app = express();
 const PORT = process.env.PORT || 3000;
 
 // Admin API key (unlimited) - gunakan environment variable di Vercel
-const ADMIN_API_KEY = process.env.ADMIN_API_KEY || 'fukuapikeysunli';
+const ADMIN_API_KEY = process.env.ADMIN_API_KEY || 'doi';
 
 // Resend API key
 const RESEND_API_KEY = process.env.RESEND_API_KEY || "re_B5xCbPen_KEPNN6Gnyu6YEHHEP6MNxUrD";
