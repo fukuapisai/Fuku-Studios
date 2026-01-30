@@ -340,7 +340,28 @@ app.post('/contact', async (req, res) => {
 });
 
 // Home endpoint
-
+app.get('/', (req, res) => {
+  res.json({
+    service: 'FukuXyz API',
+    version: '1.0.0',
+    status: 'Online',
+    endpoints: [
+      '/api/createapikey - Buat API key baru (admin only)',
+      '/api/cekapikey - Cek info API key',
+      '/api/resetlimit - Reset limit (admin only)',
+      '/api/tiktok - Download TikTok video',
+      '/api/turboseek - Search engine AI',
+      '/api/dolphin - AI Chat',
+      '/api/tobase64 - Convert text to base64',
+      '/api/gateaway - Payment gateway',
+      '/api/fukucek - Check payment status',
+      '/api/message - Send email message',
+      '/contact - Contact form (POST)',
+      '/health - Health check'
+    ],
+    note: 'Semua endpoint /api/... memerlukan API key'
+  });
+});
 
 // Health check endpoint
 app.get('/health', (req, res) => {
