@@ -195,7 +195,6 @@ app.get('/api/cekapikey', (req, res) => {
     });
   }
   
-  // Cek apakah API key admin
   if (api === ADMIN_API_KEY) {
     return res.status(200).json({
       status: true,
@@ -206,7 +205,6 @@ app.get('/api/cekapikey', (req, res) => {
     });
   }
   
-  // Cek API key user
   const userKey = apiKeys[api];
   if (!userKey) {
     return res.status(404).json({
@@ -214,6 +212,12 @@ app.get('/api/cekapikey', (req, res) => {
       message: 'API key tidak ditemukan'
     });
   }
+  
+  const now = new Date();
+  const resetTime = new Date(userKey.resetAt);
+  const msRemaining = resetTime - now;
+  const minutesRemaining = Math.max(0, Math.floor(msRemaining / 60000));
+  const secondsRemaining = Math.max(0, Math.floor((msRemaining % 60000) / 1000));
   
   const percentageUsed = ((userKey.totalUsed || 0) / userKey.limit) * 100;
   
@@ -224,13 +228,17 @@ app.get('/api/cekapikey', (req, res) => {
     info: {
       name: userKey.name,
       created: new Date(userKey.created).toLocaleString(),
-      lastUsed: userKey.lastUsed ? new Date(userKey.lastUsed).toLocaleString() : 'Belum pernah digunakan',
+      lastUsed: userKey.lastUsed ?
+        new Date(userKey.lastUsed).toLocaleString() :
+        'Belum pernah digunakan',
       limit: userKey.limit,
       remaining: userKey.remaining,
       totalUsed: userKey.totalUsed || 0,
       percentageUsed: `${percentageUsed.toFixed(1)}%`,
-      usageHistory: (userKey.usageHistory || []).slice(-5), // 5 penggunaan terakhir
-      note: 'Data disimpan di memory server'
+      resetAt: resetTime.toLocaleString(),
+      timeToReset: `${minutesRemaining} menit ${secondsRemaining} detik`,
+      usageHistory: (userKey.usageHistory || []).slice(-5),
+      note: 'Limit akan otomatis reset setiap 1 jam'
     }
   });
 });
