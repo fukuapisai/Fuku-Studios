@@ -4,6 +4,7 @@ const bodyParser = require('body-parser');
 const crypto = require('crypto')
 const axios = require('axios')
 const cors = require('cors');
+const { Resend } = require("resend")
 const app = express();
 const PORT = process.env.PORT || 3000;
 
@@ -34,6 +35,60 @@ app.get('/', (req, res) => {
 app.get('/health', (req, res) => {
   res.status(200).json({ status: 'OK', service: 'FukuXyz API' });
 });
+
+
+app.get("/api/message", async (req, res) => {
+  const { email, pesan } = req.query
+
+  if (!email || !pesan) {
+    return res.status(400).json({
+      status: false,
+      message: 'Parameter "email" dan "pesan" wajib diisi'
+    })
+  }
+
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+    return res.status(400).json({
+      status: false,
+      message: "Format email tidak valid"
+    })
+  }
+
+  // API key Resend dipasang langsung di sini
+  const resend = new Resend("re_B5xCbPen_KEPNN6Gnyu6YEHHEP6MNxUrD")
+
+  try {
+    await resend.emails.send({
+      from: "Fukushima Official <OFFICIAL@fukushima-offc.biz.id>",
+      to: email,
+      subject: "Pesan Baru",
+      html: `
+        <div style="font-family:Arial;background:#f2f2f2;padding:20px">
+          <div style="max-width:500px;background:#fff;margin:auto;padding:30px;border-radius:12px;text-align:center">
+            <h2>📩 Pesan Untuk Anda</h2>
+            <p>${pesan}</p>
+            <hr>
+            <small>${new Date().toLocaleString()}</small>
+          </div>
+        </div>
+      `
+    })
+
+    return res.json({
+      status: true,
+      message: "Pesan berhasil dikirim",
+      email
+    })
+
+  } catch (err) {
+    return res.status(500).json({
+      status: false,
+      message: "Gagal mengirim email",
+      error: err.message
+    })
+  }
+})
+
 
 app.get("/api/fukucek", async (req, res) => {
   const trxId = req.query.transactionId;
