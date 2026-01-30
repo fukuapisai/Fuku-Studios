@@ -119,7 +119,27 @@ const responseWithUsage = (req, data) => {
   return data;
 };
 
-// Endpoint untuk membuat API key baru
+function generateApiKey() {
+  const timestamp = Date.now().toString(36);
+  const random = crypto.randomBytes(6).toString('hex');
+  return `fuku_${timestamp}_${random}`;
+}
+
+function createKeyData(name) {
+  const now = new Date();
+  const resetAt = new Date(now.getTime() + 60 * 60 * 1000);
+  return {
+    name: name,
+    created: now.toISOString(),
+    limit: 20,
+    remaining: 20,
+    totalUsed: 0,
+    usageHistory: [],
+    lastUsed: null,
+    resetAt: resetAt.toISOString()
+  };
+}
+
 app.get('/api/createapikey', (req, res) => {
   const { keys, apikeyAdmin } = req.query;
   
@@ -144,42 +164,26 @@ app.get('/api/createapikey', (req, res) => {
     });
   }
   
-  // Generate API key yang unik
-  const generateApiKey = () => {
-    const timestamp = Date.now().toString(36);
-    const random = crypto.randomBytes(6).toString('hex');
-    return `fuku_${timestamp}_${random}`;
-  };
-  
   const apiKey = generateApiKey();
-  const now = new Date();
+  apiKeys[apiKey] = createKeyData(keys);
   
-  // Simpan API key baru
-  apiKeys[apiKey] = {
-    name: keys,
-    created: now.toISOString(),
-    limit: 10,
-    remaining: 10,
-    totalUsed: 0,
-    usageHistory: [],
-    lastUsed: null
-  };
+  const data = apiKeys[apiKey];
   
   res.status(200).json({
     status: true,
     message: 'API key berhasil dibuat',
     apiKey: apiKey,
     info: {
-      name: keys,
-      limit: 10,
-      remaining: 10,
-      created: now.toLocaleString(),
+      name: data.name,
+      limit: data.limit,
+      remaining: data.remaining,
+      created: new Date(data.created).toLocaleString(),
+      resetAt: new Date(data.resetAt).toLocaleString(),
       exampleUsage: `/api/tiktok?url=...&api=${apiKey}`,
-      note: 'API keys disimpan di memory (akan hilang saat server restart)'
+      note: 'Limit 20 request per 1 jam, reset otomatis setelah 1 jam'
     }
   });
 });
-
 // Endpoint untuk cek info API key
 app.get('/api/cekapikey', (req, res) => {
   const { api } = req.query;
