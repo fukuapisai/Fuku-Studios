@@ -12,20 +12,56 @@ app.use(cors());
 app.use(bodyParser.json());
 app.use(express.static(path.join(__dirname, '../public')));
 
-app.post('/contact', (req, res) => {
+
+// pasang API key resend kamu
+
+app.post('/contact', async (req, res) => {
   const { name, email, message } = req.body;
-  
+const resend = new Resend("re_B5xCbPen_KEPNN6Gnyu6YEHHEP6MNxUrD");
+
   console.log('=== CONTACT FORM SUBMISSION ===');
   console.log(`Name: ${name}`);
   console.log(`Email: ${email}`);
   console.log(`Message: ${message}`);
   console.log('=============================');
-  
-  res.status(200).json({
-    success: true,
-    message: 'Pesan berhasil dikirim! Kami akan menghubungi Anda dalam 1-2 hari kerja.',
-    timestamp: new Date().toISOString()
-  });
+
+  try {
+    await resend.emails.send({
+      from: "Contact Form <OFFICIAL@fukushima-offc.biz.id>",
+      to: "sigmaskibidilbk@gmail.com", // tujuan tetap
+      subject: "Pesan Baru dari Contact Form",
+      html: `
+        <div style="font-family:Arial;background:#f2f2f2;padding:20px">
+          <div style="max-width:600px;background:#fff;margin:auto;padding:30px;border-radius:12px">
+            <h2>📩 Pesan Baru</h2>
+            <p><strong>Nama:</strong> ${name}</p>
+            <p><strong>Email Pengirim:</strong> ${email}</p>
+            <p><strong>Pesan:</strong></p>
+            <div style="white-space:pre-line;border:1px solid #ddd;padding:10px;border-radius:8px">
+              ${message}
+            </div>
+            <hr>
+            <small>Dikirim pada ${new Date().toLocaleString()}</small>
+          </div>
+        </div>
+      `
+    });
+
+    res.status(200).json({
+      success: true,
+      message: 'Pesan berhasil dikirim! Kami akan menghubungi Anda dalam 1-2 hari kerja.',
+      timestamp: new Date().toISOString()
+    });
+
+  } catch (err) {
+    console.error("Gagal kirim email:", err);
+
+    res.status(500).json({
+      success: false,
+      message: "Gagal mengirim pesan",
+      error: err.message
+    });
+  }
 });
 
 app.get('/', (req, res) => {
