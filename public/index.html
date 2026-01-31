@@ -3,27 +3,122 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Fuku APIs - Solution</title>
+    <title>Fuku APIs - Dashboard</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Jost:wght@400;500;600;700&family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css">
     <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>⚡</text></svg>">
 </head>
 <body>
+    <!-- Login Modal -->
+    <div id="loginModal" class="fx-modal">
+        <div class="fx-modal-content fx-login-modal">
+            <div class="fx-login-left">
+                <h2>Selamat Datang</h2>
+                <p>Masuk untuk mengakses dashboard API dan mengelola API keys Anda.</p>
+                <div class="fx-login-features">
+                    <div class="fx-feature-item">
+                        <i class="fas fa-key"></i>
+                        <span>Buat API Key Gratis</span>
+                    </div>
+                    <div class="fx-feature-item">
+                        <i class="fas fa-chart-line"></i>
+                        <span>Pantau Penggunaan</span>
+                    </div>
+                    <div class="fx-feature-item">
+                        <i class="fas fa-bolt"></i>
+                        <span>Akses Semua Endpoint</span>
+                    </div>
+                </div>
+            </div>
+            <div class="fx-login-right">
+                <h3>Masuk ke Dashboard</h3>
+                
+                <!-- Step 1: Email & Name -->
+                <div id="loginStep1" class="fx-login-step active">
+                    <div class="fx-form-group">
+                        <label for="userName">Nama Lengkap</label>
+                        <input type="text" id="userName" placeholder="Masukkan nama Anda" required>
+                    </div>
+                    <div class="fx-form-group">
+                        <label for="userEmail">Email</label>
+                        <input type="email" id="userEmail" placeholder="email@contoh.com" required>
+                    </div>
+                    <button id="btnSendOTP" class="fx-button-primary fx-button-full">
+                        <i class="fas fa-paper-plane"></i> Kirim Kode Verifikasi
+                    </button>
+                    <p class="fx-note">Kode OTP akan dikirim ke email Anda.</p>
+                </div>
+                
+                <!-- Step 2: OTP Verification -->
+                <div id="loginStep2" class="fx-login-step">
+                    <p class="fx-otp-info">Kode verifikasi telah dikirim ke <span id="otpEmail"></span></p>
+                    <div class="fx-otp-inputs">
+                        <input type="text" maxlength="1" class="fx-otp-input" data-index="0">
+                        <input type="text" maxlength="1" class="fx-otp-input" data-index="1">
+                        <input type="text" maxlength="1" class="fx-otp-input" data-index="2">
+                        <input type="text" maxlength="1" class="fx-otp-input" data-index="3">
+                    </div>
+                    <div class="fx-otp-actions">
+                        <button id="btnVerifyOTP" class="fx-button-primary">
+                            <i class="fas fa-check"></i> Verifikasi
+                        </button>
+                        <button id="btnResendOTP" class="fx-button-secondary">
+                            <i class="fas fa-redo"></i> Kirim Ulang
+                        </button>
+                    </div>
+                    <p class="fx-timer">Kode berlaku: <span id="otpTimer">300</span> detik</p>
+                </div>
+                
+                <div class="fx-login-footer">
+                    <p>Dengan masuk, Anda menyetujui <a href="#">Syarat & Ketentuan</a></p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Navbar -->
     <nav class="fx-navbar">
         <div class="fx-container">
             <div class="fx-navbar-inner">
                 <a href="#" class="fx-logo">Fuku<span class="fx-logo-gradient">APIs</span></a>
                 
                 <div class="fx-nav-links">
-                    <a href="#home" class="fx-nav-link">Home</a>
-                    <a href="#about" class="fx-nav-link">About</a>
-                    <a href="#services" class="fx-nav-link">Services</a>
-                    <a href="#solutions" class="fx-nav-link">Solutions</a>
-                    <a href="#portfolio" class="fx-nav-link">Portfolio</a>
-                    <a href="#contact" class="fx-nav-link fx-nav-button">Contact Us</a>
+                    <a href="#home" class="fx-nav-link"><i class="fas fa-home"></i> Home</a>
+                    <a href="#dashboard" class="fx-nav-link"><i class="fas fa-tachometer-alt"></i> Dashboard</a>
+                    <a href="#endpoints" class="fx-nav-link"><i class="fas fa-code"></i> Endpoints</a>
+                    <a href="#docs" class="fx-nav-link"><i class="fas fa-book"></i> Docs</a>
+                    <a href="#contact" class="fx-nav-link fx-nav-button">Contact</a>
+                    
+                    <!-- User Menu -->
+                    <div class="fx-user-menu" id="userMenu">
+                        <div class="fx-user-avatar" id="userAvatar">
+                            <i class="fas fa-user"></i>
+                        </div>
+                        <div class="fx-user-dropdown">
+                            <div class="fx-user-info">
+                                <h4 id="dropdownUserName">Guest</h4>
+                                <p id="dropdownUserEmail">guest@example.com</p>
+                            </div>
+                            <div class="fx-dropdown-divider"></div>
+                            <a href="#dashboard" class="fx-dropdown-item">
+                                <i class="fas fa-tachometer-alt"></i> Dashboard
+                            </a>
+                            <a href="#api-keys" class="fx-dropdown-item">
+                                <i class="fas fa-key"></i> API Keys
+                            </a>
+                            <a href="#usage" class="fx-dropdown-item">
+                                <i class="fas fa-chart-bar"></i> Usage Stats
+                            </a>
+                            <div class="fx-dropdown-divider"></div>
+                            <button id="btnLogout" class="fx-dropdown-item fx-logout">
+                                <i class="fas fa-sign-out-alt"></i> Logout
+                            </button>
+                        </div>
+                    </div>
                 </div>
                 
                 <button class="fx-menu-toggle" id="menuToggle">
@@ -33,505 +128,294 @@
         </div>
     </nav>
 
-    <!-- Hero Section -->
-    <section class="fx-hero" id="home">
-        <div class="fx-container">
-            <div class="fx-hero-content">
-                <h1 class="fx-hero-title">
-                    Layanan <span class="fx-gradient-text">API Solution</span> Gratis Dan Cepat
-                </h1>
-                <p class="fx-hero-subtitle">
-Fuku APIs menyediakan layanan API gratis dan cepat untuk membangun aplikasi modern dengan performa tinggi dan integrasi tanpa ribet.                </p>
-                <div class="fx-hero-buttons">
-                    <a href="#contact" class="fx-button-primary">Mulai</a>
-                    <a href="#solutions" class="fx-button-secondary">
-                        <i class="fas fa-play-circle"></i> Lihat Selengkapnya
-                    </a>
-                </div>
-            </div>
-            
-            <div class="fx-hero-stats">
-                <div class="fx-stat-card">
-                    <h3 class="fx-stat-number">99.9%</h3>
-                    <p class="fx-stat-label">Sistem Uptime</p>
-                </div>
-                <div class="fx-stat-card">
-                    <h3 class="fx-stat-number">250+</h3>
-                    <p class="fx-stat-label">Penggunaan Setiap Hari</p>
-                </div>
-                <div class="fx-stat-card">
-                    <h3 class="fx-stat-number">40+</h3>
-                    <p class="fx-stat-label">Scraping Aktif</p>
-                </div>
-                <div class="fx-stat-card">
-                    <h3 class="fx-stat-number">24/7</h3>
-                    <p class="fx-stat-label">Layanan</p>
-                </div>
-            </div>
-        </div>
-    </section>
-    <section class="fx-section" id="about">
-        <div class="fx-container">
-            <div class="fx-section-header">
-                <h2 class="fx-section-title">Tentang <span class="fx-gradient-text">FukuAPIs</span></h2>
-                <p class="fx-section-subtitle">Baca Panduan Lengkap Sebelum Menggunakan</p>
-            </div>
-            
-            <div class="fx-about-content">
-                <div class="fx-about-text">
-                    <h3 class="fx-about-title">Membangun struktur & Pemanggilan</h3>
-                    <p>FukuXyz API adalah platform API internal yang dikembangkan oleh AhmadXyz untuk kebutuhan enterprise. Dirancang untuk integrasi sistem, otomasi, dan pengolahan data skala besar, FukuXyz API memberikan performa tinggi dan keamanan tingkat korporat, namun hanya untuk penggunaan umum maupun partner terverifikasi.</p>
-                    <p>Dengan API ini, developer dan tim teknis dapat membangun aplikasi cerdas, mengotomatiskan proses, dan mengakses layanan Api tanpa harus mempublikasikan endpoint ke publik. Semua layanan dioptimalkan untuk kecepatan, stabilitas, dan kontrol penuh atas akses..</p>
-                    
-                    <div class="fx-features">
-                        <div class="fx-feature">
-                            <i class="fas fa-brain fx-feature-icon"></i>
-                            <h4>Pembelajaran Penyesuaian Parameter</h4>
-<p>Sesuaikan parameter saat memanggil endpoint FukuXyz API untuk mengontrol hasil yang dikembalikan dalam JSON, sehingga output dapat diatur sesuai kebutuhan..</p>                        </div>
-                        <div class="fx-feature">
-                            <i class="fas fa-shield-alt fx-feature-icon"></i>
-                            <h4>Keamanan</h4>
-                            <p>Saat menggunakan Web ini anda tidak perlu login atau daftar! jadi anda bebas mengembangkan projek anda dengan tenang dan aman.</p>
-                        </div>
-                        <div class="fx-feature">
-                            <i class="fas fa-infinity fx-feature-icon"></i>
-                            <h4>Penggunaan Tidak Terbatas</h4>
-                            <p>FukuXyz menyimpan endpoint yang sangat berguna untuk penggunaan jangka panjang. Anda tidak perlu khawatir! karena ini 100% gratis.</p>
-                        </div>
+    <!-- Main Content -->
+    <div class="fx-main-content">
+        <!-- Hero Section -->
+        <section class="fx-hero" id="home">
+            <div class="fx-container">
+                <div class="fx-hero-content">
+                    <h1 class="fx-hero-title">
+                        Welcome to <span class="fx-gradient-text">Fuku APIs</span> Dashboard
+                    </h1>
+                    <p class="fx-hero-subtitle">
+                        Kelola API keys, pantau penggunaan, dan akses semua endpoint dengan mudah.
+                    </p>
+                    <div class="fx-hero-buttons" id="heroButtons">
+                        <!-- Dynamic buttons based on login status -->
                     </div>
                 </div>
                 
-                <div class="fx-about-visual">
-                    <div class="fx-visual-card">
-                        <div class="fx-visual-content">
-                            <h4>Persyaratan Penggunaan</h4>
-                            <div class="fx-tech-stack">
-                                <span class="fx-tech-item">Jangan DDoS</span>
-                                <span class="fx-tech-item">Menggunakan Tools Sampah Untuk Mencuri Data Web</span>
-                                <span class="fx-tech-item">Penyalah gunaan</span>
-                                <span class="fx-tech-item">Spam Endpoint Berlebihan</span>
-                                <span class="fx-tech-item">SQL Injection</span>
-                                <span class="fx-tech-item">Credential Stuffing</span>
-                            </div>
-                            <div class="fx-visual-graph">
-                                <div class="fx-graph-bar" style="--height: 85%; --color: #4361ee;">
+                <div class="fx-hero-stats">
+                    <div class="fx-stat-card">
+                        <h3 class="fx-stat-number" id="statRemaining">0</h3>
+                        <p class="fx-stat-label">Requests Available</p>
+                    </div>
+                    <div class="fx-stat-card">
+                        <h3 class="fx-stat-number" id="statUsed">0</h3>
+                        <p class="fx-stat-label">Requests Used</p>
+                    </div>
+                    <div class="fx-stat-card">
+                        <h3 class="fx-stat-number" id="statKeys">0</h3>
+                        <p class="fx-stat-label">API Keys</p>
+                    </div>
+                    <div class="fx-stat-card">
+                        <h3 class="fx-stat-number">24/7</h3>
+                        <p class="fx-stat-label">Support</p>
+                    </div>
+                </div>
+            </div>
+        </section>
 
+        <!-- Dashboard Section -->
+        <section class="fx-section" id="dashboard">
+            <div class="fx-container">
+                <div class="fx-section-header">
+                    <h2 class="fx-section-title">API <span class="fx-gradient-text">Dashboard</span></h2>
+                    <p class="fx-section-subtitle">Kelola API keys dan pantau penggunaan Anda</p>
+                </div>
+                
+                <div class="fx-dashboard">
+                    <!-- API Keys Section -->
+                    <div class="fx-dashboard-card fx-api-keys-card">
+                        <div class="fx-card-header">
+                            <h3><i class="fas fa-key"></i> API Keys Anda</h3>
+                            <button id="btnCreateApiKey" class="fx-button-small">
+                                <i class="fas fa-plus"></i> Buat Key Baru
+                            </button>
+                        </div>
+                        <div class="fx-card-body">
+                            <div id="apiKeysList" class="fx-api-keys-list">
+                                <!-- Dynamic API keys will be loaded here -->
+                                <div class="fx-empty-state">
+                                    <i class="fas fa-key"></i>
+                                    <p>Belum ada API key. Buat key pertama Anda!</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Quick Actions -->
+                    <div class="fx-dashboard-card fx-quick-actions">
+                        <div class="fx-card-header">
+                            <h3><i class="fas fa-bolt"></i> Quick Actions</h3>
+                        </div>
+                        <div class="fx-card-body">
+                            <div class="fx-actions-grid">
+                                <button class="fx-action-btn" data-endpoint="tiktok">
+                                    <i class="fab fa-tiktok"></i>
+                                    <span>TikTok Downloader</span>
+                                </button>
+                                <button class="fx-action-btn" data-endpoint="dolphin">
+                                    <i class="fas fa-brain"></i>
+                                    <span>AI Chat</span>
+                                </button>
+                                <button class="fx-action-btn" data-endpoint="turboseek">
+                                    <i class="fas fa-search"></i>
+                                    <span>AI Search</span>
+                                </button>
+                                <button class="fx-action-btn" data-endpoint="base64">
+                                    <i class="fas fa-code"></i>
+                                    <span>Base64 Encode</span>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Usage Stats -->
+                    <div class="fx-dashboard-card fx-usage-stats">
+                        <div class="fx-card-header">
+                            <h3><i class="fas fa-chart-line"></i> Usage Statistics</h3>
+                        </div>
+                        <div class="fx-card-body">
+                            <div class="fx-usage-chart" id="usageChart">
+                                <canvas id="usageChartCanvas"></canvas>
+                            </div>
+                            <div class="fx-usage-summary">
+                                <div class="fx-usage-item">
+                                    <span class="fx-usage-label">Total Requests</span>
+                                    <span class="fx-usage-value" id="totalRequests">0</span>
+                                </div>
+                                <div class="fx-usage-item">
+                                    <span class="fx-usage-label">Remaining</span>
+                                    <span class="fx-usage-value" id="remainingRequests">0</span>
+                                </div>
+                                <div class="fx-usage-item">
+                                    <span class="fx-usage-label">Success Rate</span>
+                                    <span class="fx-usage-value" id="successRate">0%</span>
                                 </div>
                             </div>
                         </div>
                     </div>
                 </div>
             </div>
-        </div>
-    </section>
+        </section>
 
-    <!-- Services Section -->
-    <section class="fx-section fx-section-alt" id="services">
-        <div class="fx-container">
-            <div class="fx-section-header">
-                <h2 class="fx-section-title">Sistem <span class="fx-gradient-text">Operasi</span></h2>
-                <p class="fx-section-subtitle">Bersiap menuju puncak projek kamu</p>
-            </div>
-            
-            <div class="fx-services-grid">
-                <div class="fx-service-card">
-                    <div class="fx-service-icon">
-                        <i class="fas fa-robot"></i>
-                    </div>
-                    <h3 class="fx-service-title">Fitur AI</h3>
-                    <p class="fx-service-desc">Beberapa fitur endpoint AI kini tersedia dalam:</p>
-                    <ul class="fx-service-features">
-                        <li>Ai Search</li>
-                        <li>Image Generator</li>
-                        <li>Video Generator</li>
-                    </ul>
-                    <a href="#contact" class="fx-service-link">Lihat</a>
+        <!-- Endpoints Section -->
+        <section class="fx-section fx-section-alt" id="endpoints">
+            <div class="fx-container">
+                <div class="fx-section-header">
+                    <h2 class="fx-section-title">Available <span class="fx-gradient-text">Endpoints</span></h2>
+                    <p class="fx-section-subtitle">Klik endpoint untuk melihat detail dan contoh penggunaan</p>
                 </div>
                 
-                <div class="fx-service-card">
-                    <div class="fx-service-icon">
-                        <i class="fas fa-cogs"></i>
-                    </div>
-<h3 class="fx-service-title">Sistem Integrasi Endpoint</h3>
-<p class="fx-service-desc">
-    Setiap endpoint memiliki pengaturan parameter terpusat yang dikelola melalui path <code>/api/endpoint</code>,
-    memungkinkan konfigurasi request, autentikasi, dan validasi data dilakukan secara konsisten dan terstruktur.
-</p>
-                    <ul class="fx-service-features">
-  <li>
-    Custom Machine Learning Models  
-    <br>
-    Model dapat dipanggil melalui endpoint dengan parameter khusus seperti <code>?text=</code>, <code>?prompt=</code>, atau <code>?mode=</code> yang akan diproses dan dibungkus dalam satu hasil respon.
-  </li>
-
-  <li>
-    Data Pipeline Architecture  
-    <br>
-    Setiap parameter seperti <code>?url=</code>, <code>?format=</code>, atau <code>?type=</code> akan melewati alur pipeline data sebelum diproses dan digabungkan ke dalam struktur result.
-  </li>
-
-  <li>
-    Model Deployment & Integration  
-    <br>
-    Endpoint mendukung pemanggilan dengan berbagai parameter query yang akan divalidasi, dieksekusi oleh model, dan dikembalikan dalam satu format respon terstandarisasi.
-  </li>
-                    </ul>
-                    <a href="#contact" class="fx-service-link">Lihat→</a>
-                </div>
-                
-                <div class="fx-service-card">
-                    <div class="fx-service-icon">
-                        <i class="fas fa-cloud"></i>
-                    </div>
-                    <h3 class="fx-service-title">Penyimpanan Data</h3>
-<p class="fx-service-desc">
-Jalankan dan kelola infrastruktur Endpoint yang skalabel di platform cloud berperforma tinggi, dengan pemrosesan data sementara tanpa penyimpanan permanen untuk menjaga privasi dan efisiensi.
-</p>                    <ul class="fx-service-features">
-  <li>
-    Managed GPU Clusters  
-    <br>
-    Setiap permintaan diproses pada klaster GPU terkelola, dengan hasil yang dikembalikan dalam format JSON, baik dalam kondisi berhasil maupun error.
-  </li>
-
-  <li>
-    Auto-scaling AI Workloads  
-    <br>
-    Sistem akan menyesuaikan beban kerja secara otomatis, di mana struktur respon JSON dapat berubah sesuai status pemrosesan dan kapasitas sistem.
-  </li>
-
-  <li>
-    Enterprise Security & Compliance  
-    <br>
-    Setiap respon, termasuk pesan error dan status gagal, dikembalikan dalam format JSON terstandarisasi untuk memastikan keamanan dan konsistensi integrasi.
-  </li>
-                    </ul>
-                    <a href="#contact" class="fx-service-link">Lihat→</a>
+                <div class="fx-endpoints-grid" id="endpointsGrid">
+                    <!-- Endpoints will be dynamically loaded -->
                 </div>
             </div>
-        </div>
-    </section>
+        </section>
 
-    <!-- Solutions Section -->
-    <section class="fx-section" id="solutions">
-        <div class="fx-container">
-            <div class="fx-section-header">
-                <h2 class="fx-section-title">Mungkin anda    <span class="fx-gradient-text"> Menyukai</span></h2>
-<p class="fx-section-subtitle">
-    Kami juga mengembangkan beberapa sistem bot. Silahkan cek di bawah ini
-</p>            </div>
-            
-            <div class="fx-solutions-tabs">
-                <div class="fx-tabs-header">
-                    <button class="fx-tab active" data-tab="finance">Fuku Gen 2 WhatsApp</button>
-                    <button class="fx-tab" data-tab="healthcare">Healthcare</button>
-                    <button class="fx-tab" data-tab="retail">Retail & E-commerce</button>
-                    <button class="fx-tab" data-tab="manufacturing">Manufacturing</button>
+        <!-- API Tester Modal -->
+        <div id="apiTesterModal" class="fx-modal">
+            <div class="fx-modal-content fx-api-tester">
+                <div class="fx-tester-header">
+                    <h3 id="testerTitle">API Tester</h3>
+                    <button class="fx-close-btn" id="closeTester">&times;</button>
                 </div>
-                
-                <div class="fx-tabs-content">
-                    <div class="fx-tab-pane active" id="finance">
-                        <div class="fx-solution-content">
-                            <div class="fx-solution-text">
-                                <h3>Fuku Gen 2 WhatsApp</h3>
-<p>
-    Fuku Gen2 WhatsApp Bot adalah sistem bot generasi kedua yang berjalan di platform WhatsApp, dirancang untuk memproses perintah pengguna melalui pesan, mengeksekusi endpoint API, dan mengembalikan hasil dalam format respon terstruktur secara otomatis.
-</p>                                <ul>
-                                    <li><i class="fas fa-check-circle"></i> Fitur cocok untuk dipelajari untuk pemula</li>
-                                    <li><i class="fas fa-check-circle"></i> Sistem keamanan ketat</li>
-                                    <li><i class="fas fa-check-circle"></i> Memahami alogaritma penggunaan</li>
-                                    <li><i class="fas fa-check-circle"></i> 500+ Fitur Aktif</li>
-                                </ul>
-                            </div>
-                            <div class="fx-solution-visual">
-                                <div class="fx-solution-card">
-                                    <h4>Keunggulan</h4>
-                                    <div class="fx-metric">
-                                        <span>Kecepatan Respon</span>
-                                        <span class="fx-metric-value">+97%</span>
-                                    </div>
-                                    <div class="fx-metric">
-                                        <span>Proses Permintaan</span>
-                                        <span class="fx-metric-value">+68%</span>
-                                    </div>
-                                    <div class="fx-metric">
-                                        <span>Fitur Ai Multi Fungsi</span>
-                                        <span class="fx-metric-value">+32%</span>
-                                    </div>
-                                </div>
-                            </div>
+                <div class="fx-tester-body">
+                    <div class="fx-tester-url">
+                        <label>Endpoint URL</label>
+                        <div class="fx-url-input">
+                            <input type="text" id="apiUrl" readonly>
+                            <button id="copyUrl" class="fx-copy-btn">
+                                <i class="fas fa-copy"></i>
+                            </button>
                         </div>
                     </div>
                     
-                    <div class="fx-tab-pane" id="healthcare">
-                        <div class="fx-solution-content">
-                            <div class="fx-solution-text">
-                                <h3>Healthcare AI Diagnostics</h3>
-                                <p>Revolutionize patient care with AI-driven diagnostics, treatment planning, and operational efficiency tools.</p>
-                                <ul>
-                                    <li><i class="fas fa-check-circle"></i> Medical imaging analysis</li>
-                                    <li><i class="fas fa-check-circle"></i> Predictive patient outcome modeling</li>
-                                    <li><i class="fas fa-check-circle"></i> Drug discovery acceleration</li>
-                                    <li><i class="fas fa-check-circle"></i> Hospital resource optimization</li>
-                                </ul>
-                            </div>
-                            <div class="fx-solution-visual">
-                                <div class="fx-solution-card">
-                                    <h4>Healthcare Impact</h4>
-                                    <div class="fx-metric">
-                                        <span>Diagnostic Accuracy</span>
-                                        <span class="fx-metric-value">+38%</span>
-                                    </div>
-                                    <div class="fx-metric">
-                                        <span>Treatment Planning Time</span>
-                                        <span class="fx-metric-value">-52%</span>
-                                    </div>
-                                    <div class="fx-metric">
-                                        <span>Patient Outcome Improvement</span>
-                                        <span class="fx-metric-value">+27%</span>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
+                    <div class="fx-tester-params" id="testerParams">
+                        <!-- Dynamic parameters will be loaded here -->
                     </div>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <!-- Portfolio Section -->
-    <section class="fx-section fx-section-alt" id="portfolio">
-        <div class="fx-container">
-            <div class="fx-section-header">
-                <h2 class="fx-section-title">Sukses <span class="fx-gradient-text">Penggunaan</span></h2>
-                <p class="fx-section-subtitle">Nyata untuk pengembangan projek</p>
-            </div>
-            
-            <div class="fx-portfolio-grid">
-                <div class="fx-portfolio-card">
-                    <div class="fx-portfolio-header">
-                        <h3>Penggunaan</h3>
-                        <span class="fx-portfolio-category">Ini hanya cerita</span>
-                    </div>
-                    <p class="fx-portfolio-desc">Lebih dari 15.000 pengguna diseluruh dunia telah menggunakan fuku.</p>
-                    <div class="fx-portfolio-stats">
-                        <div class="fx-portfolio-stat">
-                            <span class="fx-stat-value">15K</span>
-                            <span class="fx-stat-label">Penggunaan</span>
-                        </div>
-                        <div class="fx-portfolio-stat">
-                            <span class="fx-stat-value">73%</span>
-                            <span class="fx-stat-label">Pengguna kembali ±4 bulan terakhir.</span>
-                        </div>
-                    </div>
-                </div>
-                
-                <div class="fx-portfolio-card">
-                    <div class="fx-portfolio-header">
-                        <h3>Supply Chain Optimization</h3>
-                        <span class="fx-portfolio-category">Manufacturing</span>
-                    </div>
-                    <p class="fx-portfolio-desc">Developed predictive logistics AI that reduced delivery times by 34% and cut operational costs by 22% for a global manufacturing firm.</p>
-                    <div class="fx-portfolio-stats">
-                        <div class="fx-portfolio-stat">
-                            <span class="fx-stat-value">34%</span>
-                            <span class="fx-stat-label">Faster delivery times</span>
-                        </div>
-                        <div class="fx-portfolio-stat">
-                            <span class="fx-stat-value">22%</span>
-                            <span class="fx-stat-label">Cost reduction</span>
-                        </div>
-                    </div>
-                </div>
-                
-                <div class="fx-portfolio-card">
-                    <div class="fx-portfolio-header">
-                        <h3>Personalized E-commerce AI</h3>
-                        <span class="fx-portfolio-category">Retail</span>
-                    </div>
-                    <p class="fx-portfolio-desc">Built a recommendation engine that increased average order value by 28% and customer retention by 41% for a leading online retailer.</p>
-                    <div class="fx-portfolio-stats">
-                        <div class="fx-portfolio-stat">
-                            <span class="fx-stat-value">28%</span>
-                            <span class="fx-stat-label">Increase in order value</span>
-                        </div>
-                        <div class="fx-portfolio-stat">
-                            <span class="fx-stat-value">41%</span>
-                            <span class="fx-stat-label">Higher retention</span>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <!-- Testimonials -->
-    <section class="fx-section" id="testimonials">
-        <div class="fx-container">
-            <div class="fx-section-header">
-                <h2 class="fx-section-title">Client <span class="fx-gradient-text">Testimonials</span></h2>
-                <p class="fx-section-subtitle">What industry leaders say about working with FukuXyz</p>
-            </div>
-            
-            <div class="fx-testimonials">
-                <div class="fx-testimonial-card">
-                    <div class="fx-testimonial-content">
-                        <p>"FukuXyz transformed our data analytics capabilities. Their AI solutions helped us identify market trends 6 months before our competitors."</p>
-                    </div>
-                    <div class="fx-testimonial-author">
-                        <div class="fx-author-info">
-                            <h4>Sarah Johnson</h4>
-                            <p>CTO, Global Financial Corp</p>
-                        </div>
-                    </div>
-                </div>
-                
-                <div class="fx-testimonial-card">
-                    <div class="fx-testimonial-content">
-                        <p>"The implementation was seamless, and the results exceeded expectations. Our operational efficiency improved by 40% in just 3 months."</p>
-                    </div>
-                    <div class="fx-testimonial-author">
-                        <div class="fx-author-info">
-                            <h4>Michael Chen</h4>
-                            <p>VP Technology, HealthTech Solutions</p>
-                        </div>
-                    </div>
-                </div>
-                
-                <div class="fx-testimonial-card">
-                    <div class="fx-testimonial-content">
-                        <p>"Working with FukuXyz felt like gaining a competitive edge. Their team's expertise in machine learning is truly world-class."</p>
-                    </div>
-                    <div class="fx-testimonial-author">
-                        <div class="fx-author-info">
-                            <h4>David Rodriguez</h4>
-                            <p>CEO, Retail Innovations Inc.</p>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <!-- Contact Section -->
-    <section class="fx-section fx-section-alt" id="contact">
-        <div class="fx-container">
-            <div class="fx-section-header">
-                <h2 class="fx-section-title">Get In <span class="fx-gradient-text">Touch</span></h2>
-                <p class="fx-section-subtitle">Ready to transform your business with AI? Let's start a conversation.</p>
-            </div>
-            
-            <div class="fx-contact-content">
-                <div class="fx-contact-info">
-                    <h3 class="fx-contact-title">Connect With Our AI Experts</h3>
-                    <p class="fx-contact-desc">Schedule a consultation with our AI specialists to explore how FukuXyz can drive innovation and growth for your organization.</p>
                     
-                    <div class="fx-contact-details">
-                        <div class="fx-contact-item">
-                            <i class="fas fa-envelope fx-contact-icon"></i>
-                            <div>
-                                <h4>Email Us</h4>
-                                <p>contact@fukuxyz.ai</p>
-                            </div>
-                        </div>
-                        <div class="fx-contact-item">
-                            <i class="fas fa-phone fx-contact-icon"></i>
-                            <div>
-                                <h4>Call Us</h4>
-                                <p>+1 (555) 123-4567</p>
-                            </div>
-                        </div>
-                        <div class="fx-contact-item">
-                            <i class="fas fa-map-marker-alt fx-contact-icon"></i>
-                            <div>
-                                <h4>Visit Us</h4>
-                                <p>123 AI Innovation Drive<br>San Francisco, CA 94107</p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                
-                <div class="fx-contact-form">
-                    <form id="contactForm">
-                        <div class="fx-form-group">
-                            <label for="name">Nama Kamu</label>
-                            <input type="text" id="name" name="name" required>
-                        </div>
-                        
-                        <div class="fx-form-group">
-                            <label for="email">Email (agar anda bisa dihubungi)</label>
-                            <input type="email" id="email" name="email" required>
-                        </div>
-                        
-                        <div class="fx-form-group">
-                            <label for="company">Jenis usaha</label>
-                            <input type="text" id="company" name="company" required>
-                        </div>
-                        
-                        <div class="fx-form-group">
-                            <label for="message">Pesan</label>
-                            <textarea id="message" name="message" rows="4" required></textarea>
-                        </div>
-                        
-                        <button type="submit" class="fx-button-primary fx-button-full">
-                            <i class="fas fa-paper-plane"></i> Kirim Pesan
+                    <div class="fx-tester-actions">
+                        <button id="btnTestApi" class="fx-button-primary">
+                            <i class="fas fa-play"></i> Test API
                         </button>
-                        
-                        <div id="formMessage" class="fx-form-message"></div>
-                    </form>
+                        <button id="btnResetTester" class="fx-button-secondary">
+                            <i class="fas fa-redo"></i> Reset
+                        </button>
+                    </div>
+                    
+                    <div class="fx-tester-response">
+                        <div class="fx-response-header">
+                            <h4>Response</h4>
+                            <button id="copyResponse" class="fx-copy-btn">
+                                <i class="fas fa-copy"></i> Copy
+                            </button>
+                        </div>
+                        <pre id="apiResponse" class="fx-response-output"><code>{
+  "status": "ready",
+  "message": "Masukkan parameter dan klik Test API"
+}</code></pre>
+                    </div>
                 </div>
             </div>
         </div>
-    </section>
+
+        <!-- Create API Key Modal -->
+        <div id="createKeyModal" class="fx-modal">
+            <div class="fx-modal-content">
+                <div class="fx-modal-header">
+                    <h3>Buat API Key Baru</h3>
+                    <button class="fx-close-btn" id="closeCreateKey">&times;</button>
+                </div>
+                <div class="fx-modal-body">
+                    <div class="fx-form-group">
+                        <label for="keyName">Nama API Key</label>
+                        <input type="text" id="keyName" placeholder="Contoh: My Project API Key" required>
+                        <p class="fx-note">Berikan nama yang deskriptif untuk mengenali penggunaan key ini</p>
+                    </div>
+                    
+                    <div class="fx-key-info">
+                        <div class="fx-info-item">
+                            <i class="fas fa-bolt"></i>
+                            <div>
+                                <h4>20 Requests</h4>
+                                <p>Limit per API key</p>
+                            </div>
+                        </div>
+                        <div class="fx-info-item">
+                            <i class="fas fa-infinity"></i>
+                            <div>
+                                <h4>Unlimited Time</h4>
+                                <p>Tidak ada batas waktu</p>
+                            </div>
+                        </div>
+                        <div class="fx-info-item">
+                            <i class="fas fa-sync"></i>
+                            <div>
+                                <h4>No Auto Reset</h4>
+                                <p>Limit tidak reset otomatis</p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="fx-modal-actions">
+                        <button id="btnCreateKeyConfirm" class="fx-button-primary">
+                            <i class="fas fa-key"></i> Buat API Key
+                        </button>
+                        <button id="btnCancelCreateKey" class="fx-button-secondary">
+                            Batal
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 
     <!-- Footer -->
     <footer class="fx-footer">
         <div class="fx-container">
             <div class="fx-footer-content">
                 <div class="fx-footer-brand">
-                    <a href="#" class="fx-logo">Fuku<span class="fx-logo-gradient">Xyz</span></a>
-                    <p class="fx-footer-desc">Layanan yang mengatas namakan FUKU dan semacamnya itu semua clone atau palsu. yang asli hanyalah api.fukugpt.my.id</p>
+                    <a href="#" class="fx-logo">Fuku<span class="fx-logo-gradient">APIs</span></a>
+                    <p class="fx-footer-desc">Powered by FukuXyz API v2.0</p>
                     <div class="fx-social-links">
-                        <a href="#" class="fx-social-link"><i class="fab fa-twitter"></i></a>
-                        <a href="#" class="fx-social-link"><i class="fab fa-linkedin"></i></a>
                         <a href="#" class="fx-social-link"><i class="fab fa-github"></i></a>
-                        <a href="#" class="fx-social-link"><i class="fab fa-youtube"></i></a>
+                        <a href="#" class="fx-social-link"><i class="fab fa-telegram"></i></a>
+                        <a href="#" class="fx-social-link"><i class="fab fa-discord"></i></a>
                     </div>
                 </div>
                 
                 <div class="fx-footer-links">
                     <div class="fx-footer-column">
-                        <h4>Solusi</h4>
-                        <a href="#solutions">Kostumer Service</a>
-                        <a href="#solutions">Status Web</a>
-                        <a href="#solutions">Detail</a>
-                        <a href="#solutions">Dashboard</a>
-                    </div>
-                    
-                    <div class="fx-footer-column">
-                        <h4>Jenis Usaha</h4>
-                        <a href="#about">Tentang Kami</a>
-                        <a href="#services">Servis</a>
-                        <a href="#portfolio">Portfolio</a>
-                        <a href="#contact">Kontak</a>
-                    </div>
-                    
-                    <div class="fx-footer-column">
                         <h4>Resources</h4>
-                        <a href="#">Halaman Utama</a>
-                        <a href="#">Studio</a>
-                        <a href="#">Documentation</a>
-                        <a href="#">Blog</a>
+                        <a href="#docs">Documentation</a>
+                        <a href="#api-status">API Status</a>
+                        <a href="#changelog">Changelog</a>
+                        <a href="#support">Support</a>
+                    </div>
+                    
+                    <div class="fx-footer-column">
+                        <h4>Community</h4>
+                        <a href="#forum">Forum</a>
+                        <a href="#blog">Blog</a>
+                        <a href="#examples">Examples</a>
+                        <a href="#contributors">Contributors</a>
+                    </div>
+                    
+                    <div class="fx-footer-column">
+                        <h4>Legal</h4>
+                        <a href="#privacy">Privacy Policy</a>
+                        <a href="#terms">Terms of Service</a>
+                        <a href="#cookies">Cookies</a>
+                        <a href="#gdpr">GDPR</a>
                     </div>
                 </div>
             </div>
             
             <div class="fx-footer-bottom">
-                <p>&copy; 2026 FukuXyz <a href="#">Privacy Policy</a> | <a href="#">Terms of Service</a></p>
-                <p class="fx-footer-note">Dibuat dengan <i class="fas fa-heart" style="color: #ff0055;"></i> Jangan salah pilih</p>
+                <p>&copy; 2026 Fuku APIs. All rights reserved.</p>
+                <p class="fx-footer-note">Made with <i class="fas fa-heart" style="color: #ff0055;"></i> for developers</p>
             </div>
         </div>
     </footer>
 
+    <!-- Toast Notifications -->
+    <div id="toastContainer" class="fx-toast-container"></div>
+
+    <!-- Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"></script>
     <script src="script.js"></script>
 </body>
 </html>
