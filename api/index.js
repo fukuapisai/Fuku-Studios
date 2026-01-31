@@ -766,8 +766,7 @@ app.get('/api/gemini', async (req, res) => {
         'f.req=%5B%5B%5B%22maGuAc%22%2C%22%5B0%5D%22%2Cnull%2C%22generic%22%5D%5D%5D&',
         {
           headers: {
-            'content-type':
-              'application/x-www-form-urlencoded;charset=UTF-8'
+            'content-type': 'application/x-www-form-urlencoded;charset=UTF-8'
           }
         }
       );
@@ -795,19 +794,33 @@ app.get('/api/gemini', async (req, res) => {
       }).toString(),
       {
         headers: {
-          'content-type':
-            'application/x-www-form-urlencoded;charset=UTF-8',
-          'x-goog-ext-525001261-jspb':
-            '[1,null,null,null,"9ec249fc9ad08861",null,null,null,[4]]',
+          'content-type': 'application/x-www-form-urlencoded;charset=UTF-8',
+          'x-goog-ext-525001261-jspb': '[1,null,null,null,"9ec249fc9ad08861",null,null,null,[4]]',
           'cookie': cookie
         }
       }
     );
 
     const match = Array.from(data.matchAll(/^\d+\n(.+?)\n/gm));
+
+    if (match.length < 4) {
+      return res.status(500).json({
+        success: false,
+        message: 'Gagal memproses response Gemini',
+        detail: 'Data stream tidak lengkap'
+      });
+    }
+
     const selectedArray = match.reverse()[3][1];
     const realArray = JSON.parse(selectedArray);
     const parse1 = JSON.parse(realArray[0][2]);
+
+    if (!parse1 || !parse1[4] || !parse1[4][0] || !parse1[4][0][1]) {
+      return res.status(500).json({
+        success: false,
+        message: 'Struktur data Gemini tidak valid'
+      });
+    }
 
     const newResumeArray = [
       ...parse1[1],
