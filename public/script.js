@@ -753,16 +753,15 @@ function loadEndpoints() {
         {
     id: 'gemini',
     name: 'Gemini AI',
-    description: 'Chat dengan model Gemini (scrape).',
+    description: 'Chat dengan Gemini AI.',
     method: 'GET',
     path: '/api/gemini',
     icon: 'fas fa-robot',
     color: '#4361ee',
     parameters: [
-        { name: 'api', type: 'text', required: true, label: 'API Key', placeholder: 'API_KEY_KAMU' },
         { name: 'text', type: 'text', required: true, label: 'Pesan', placeholder: 'Halo siapa kamu?' },
-        { name: 'instruction', type: 'text', required: false, label: 'Instruction', placeholder: 'Kamu adalah asisten yang ramah' },
-        { name: 'sessionId', type: 'text', required: false, label: 'Session ID', placeholder: 'Isi dari response sebelumnya untuk lanjut chat' }
+        { name: 'instruction', type: 'text', required: false, label: 'Instruction', placeholder: 'Kamu adalah asisten yang ramah dan ceria' },
+        { name: 'sessionId', type: 'text', required: false, label: 'Session ID', placeholder: 'Untuk melanjutkan percakapan sebelumnya' }
     ]
 },
         {
