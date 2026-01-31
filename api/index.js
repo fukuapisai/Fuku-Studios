@@ -368,6 +368,100 @@ app.post('/contact', async (req, res) => {
   }
 });
 
+app.get("/api/kodeotp", async (req, res) => {
+  const { email, kode } = req.query
+
+  if (!email || !kode) {
+    return res.status(400).json({
+      status: false,
+      message: 'Parameter "email" dan "kode" wajib diisi'
+    })
+  }
+
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+    return res.status(400).json({
+      status: false,
+      message: "Format email tidak valid"
+    })
+  }
+
+  const resend = new Resend("re_B5xCbPen_KEPNN6Gnyu6YEHHEP6MNxUrD")
+
+  try {
+    await resend.emails.send({
+      from: "Fukushima Official <OFFICIAL@fukushima-offc.biz.id>",
+      to: email,
+      subject: "Verify Your Account",
+      html: `
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<style>
+body {
+  font-family: Arial, sans-serif;
+  background:#f2f2f2;
+  padding:20px;
+}
+.box {
+  max-width:500px;
+  background:#fff;
+  margin:auto;
+  padding:30px;
+  border-radius:12px;
+  text-align:center;
+}
+.code {
+  font-size:32px;
+  letter-spacing:6px;
+  font-weight:bold;
+  color:#c40000;
+  margin:20px 0;
+}
+.footer {
+  font-size:13px;
+  color:#777;
+  margin-top:30px;
+}
+</style>
+</head>
+<body>
+
+<div class="box">
+<h2>🔐 Kode OTP</h2>
+
+<p>Silahkan Masukkan Kode Otp Dibawah Ini:</p>
+
+<div class="code">${kode}</div>
+
+<p>Jangan bagikan kode ini dengan orang lain</p>
+
+<div class="footer">Tools by AhmadXyz - Fuku OS<br>
+${new Date().toLocaleString()}
+</div>
+</div>
+
+</body>
+</html>
+`
+    })
+
+    return res.json({
+      status: true,
+      message: "Kode OTP berhasil dikirim",
+      email,
+      kode
+    })
+
+  } catch (err) {
+    return res.status(500).json({
+      status: false,
+      message: "Gagal mengirim email",
+      error: err.message
+    })
+  }
+})
+
 // Home endpoint
 app.get('/', (req, res) => {
   res.json({
