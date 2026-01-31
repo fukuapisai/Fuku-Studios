@@ -1,5 +1,5 @@
 const API_BASE_URL = 'https://api.fukugpt.my.id';
-const ADMIN_API_KEY = 'fukuapikeysunli';
+const ADMIN_API_KEY = 'doi';
 
 let currentUser = null;
 let userApiKeys = [];
