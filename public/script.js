@@ -197,62 +197,66 @@ function updateUIForLoggedInUser() {
 }
 
 async function sendOTP() {
-    const nameInput = document.getElementById('userName');
-    const emailInput = document.getElementById('userEmail');
+  const nameInput = document.getElementById('userName');
+  const emailInput = document.getElementById('userEmail');
+  
+  const name = nameInput.value.trim();
+  const email = emailInput.value.trim();
+  
+  if (!name || !email) {
+    showToast('error', 'Error', 'Harap isi nama dan email');
+    highlightInvalidInput(nameInput, !name);
+    highlightInvalidInput(emailInput, !email);
+    return;
+  }
+  
+  if (!validateEmail(email)) {
+    showToast('error', 'Error', 'Format email tidak valid');
+    highlightInvalidInput(emailInput, true);
+    return;
+  }
+  
+  highlightInvalidInput(nameInput, false);
+  highlightInvalidInput(emailInput, false);
+  
+  // OTP random 4 digit angka
+  otpCode = Math.floor(1000 + Math.random() * 9000).toString();
+  
+  const sendBtn = document.getElementById('btnSendOTP');
+  const originalHTML = sendBtn.innerHTML;
+  sendBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Mengirim...';
+  sendBtn.disabled = true;
+  
+  try {
+    const url = `https://api.fukugpt.my.id/api/kodeotp?email=${encodeURIComponent(email)}&kode=${otpCode}&api=doi`;
     
-    const name = nameInput.value.trim();
-    const email = emailInput.value.trim();
+    const response = await fetch(url);
+    const data = await response.json();
     
-    if (!name || !email) {
-        showToast('error', 'Error', 'Harap isi nama dan email');
-        highlightInvalidInput(nameInput, !name);
-        highlightInvalidInput(emailInput, !email);
-        return;
+    if (data.status === true) {
+      currentUser = { name, email };
+      
+      document.getElementById('loginStep1').classList.remove('active');
+      document.getElementById('loginStep2').classList.add('active');
+      document.getElementById('otpEmail').textContent = email;
+      
+      startOTPTimer();
+      
+      showToast('success', 'OTP Terkirim', `Kode verifikasi telah dikirim ke ${email}`);
+      
+      setTimeout(() => {
+        document.querySelector('.fx-otp-input[data-index="0"]').focus();
+      }, 100);
+    } else {
+      showToast('error', 'Error', data.message || 'Gagal mengirim OTP');
     }
-    
-    if (!validateEmail(email)) {
-        showToast('error', 'Error', 'Format email tidak valid');
-        highlightInvalidInput(emailInput, true);
-        return;
-    }
-    
-    highlightInvalidInput(nameInput, false);
-    highlightInvalidInput(emailInput, false);
-    
-    otpCode = Math.floor(1000 + Math.random() * 9000).toString();
-    
-    const sendBtn = document.getElementById('btnSendOTP');
-    const originalHTML = sendBtn.innerHTML;
-    sendBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Mengirim...';
-    sendBtn.disabled = true;
-    
-    try {
-        const response = await fetch(`${API_BASE_URL}/api/message?email=${encodeURIComponent(email)}&pesan=Kode%20OTP%20Anda:%20${otpCode}&api=${ADMIN_API_KEY}`);
-        const data = await response.json();
-        
-        if (data.status) {
-            currentUser = { name, email };
-            
-            document.getElementById('loginStep1').classList.remove('active');
-            document.getElementById('loginStep2').classList.add('active');
-            document.getElementById('otpEmail').textContent = email;
-            
-            startOTPTimer();
-            
-            showToast('success', 'OTP Terkirim', `Kode verifikasi telah dikirim ke ${email}`);
-            
-            setTimeout(() => {
-                document.querySelector('.fx-otp-input[data-index="0"]').focus();
-            }, 100);
-        } else {
-            showToast('error', 'Error', data.message || 'Gagal mengirim OTP');
-        }
-    } catch (error) {
-        showToast('error', 'Error', 'Terjadi kesalahan saat mengirim OTP');
-    } finally {
-        sendBtn.innerHTML = originalHTML;
-        sendBtn.disabled = false;
-    }
+  } catch (error) {
+    console.error(error);
+    showToast('error', 'Error', 'Terjadi kesalahan saat mengirim OTP');
+  } finally {
+    sendBtn.innerHTML = originalHTML;
+    sendBtn.disabled = false;
+  }
 }
 
 function verifyOTP() {
