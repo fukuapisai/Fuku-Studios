@@ -193,6 +193,60 @@ app.get('/api/createapikey', (req, res) => {
     }
   });
 });
+
+app.get('/api/addlimit', (req, res) => {
+  const { api, limit, apikeyAdmin } = req.query;
+
+  // hanya admin yang boleh menambah limit
+  if (!apikeyAdmin || apikeyAdmin !== ADMIN_API_KEY) {
+    return res.status(403).json({
+      status: false,
+      message: 'Hanya admin yang bisa menambah limit'
+    });
+  }
+
+  if (!api || !limit) {
+    return res.status(400).json({
+      status: false,
+      message: 'Parameter api dan limit diperlukan'
+    });
+  }
+
+  const userKey = apiKeys[api];
+  if (!userKey) {
+    return res.status(404).json({
+      status: false,
+      message: 'API key tidak ditemukan'
+    });
+  }
+
+  const addLimit = parseInt(limit);
+  if (isNaN(addLimit) || addLimit <= 0) {
+    return res.status(400).json({
+      status: false,
+      message: 'Limit harus berupa angka positif'
+    });
+  }
+
+  // tambah limit total dan sisa pemakaian
+  userKey.limit += addLimit;
+  userKey.remaining += addLimit;
+
+  return res.status(200).json({
+    status: true,
+    message: 'Limit berhasil ditambahkan',
+    apiKey: api,
+    added: addLimit,
+    info: {
+      newLimit: userKey.limit,
+      remaining: userKey.remaining,
+      totalUsed: userKey.totalUsed || 0,
+      resetAt: new Date(userKey.resetAt).toLocaleString(),
+      note: 'Penambahan limit tidak mengubah waktu reset'
+    }
+  });
+});
+
 // Endpoint untuk cek info API key
 app.get('/api/cekapikey', (req, res) => {
   const { api } = req.query;
