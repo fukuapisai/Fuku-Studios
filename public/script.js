@@ -476,7 +476,7 @@ async function createApiKey() {
     
     highlightInvalidInput(keyNameInput, false);
     
-    if (userApiKeys.length >= 3) {
+    if (userApiKeys.length >= 1) {
         showToast('warning', 'Peringatan', 'Maksimal 3 API keys per user');
         return;
     }
