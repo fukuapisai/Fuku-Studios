@@ -729,6 +729,116 @@ app.get('/api/tobase64', (req, res) => {
   }
 });
 
+
+app.get('/api/gemini', async (req, res) => {
+  try {
+    const message = req.query.text;
+    const instruction = req.query.instruction || '';
+    const sessionId = req.query.sessionId || null;
+
+    if (!message) {
+      return res.status(400).json({
+        success: false,
+        message: 'Parameter "text" diperlukan',
+        example: '/api/gemini?text=Halo'
+      });
+    }
+
+    let resumeArray = null;
+    let cookie = null;
+    let savedInstruction = instruction;
+
+    if (sessionId) {
+      try {
+        const sessionData = JSON.parse(
+          Buffer.from(sessionId, 'base64').toString()
+        );
+        resumeArray = sessionData.resumeArray;
+        cookie = sessionData.cookie;
+        savedInstruction =
+          instruction || sessionData.instruction || '';
+      } catch {}
+    }
+
+    if (!cookie) {
+      const { headers } = await axios.post(
+        'https://gemini.google.com/_/BardChatUi/data/batchexecute?rpcids=maGuAc&source-path=%2F&hl=en-US',
+        'f.req=%5B%5B%5B%22maGuAc%22%2C%22%5B0%5D%22%2Cnull%2C%22generic%22%5D%5D%5D&',
+        {
+          headers: {
+            'content-type':
+              'application/x-www-form-urlencoded;charset=UTF-8'
+          }
+        }
+      );
+      cookie = headers['set-cookie']?.[0]?.split('; ')[0] || '';
+    }
+
+    const requestBody = [
+      [message, 0, null, null, null, null, 0],
+      ['en-US'],
+      resumeArray || ['', '', '', null, null, null, null, null, null, ''],
+      null, null, null, [1], 1, null, null, 1, 0, null, null, null, null, null,
+      [[0]], 1, null, null, null, null, null,
+      ['', '', savedInstruction, null, null, null, null, null, 0, null, 1, null, null, null, []],
+      null, null, 1, null, null, null, null, null, null, null,
+      [1,2,3,4,5,6,7,8,9,10],
+      1, null, null, null, null, [1]
+    ];
+
+    const payload = [null, JSON.stringify(requestBody)];
+
+    const { data } = await axios.post(
+      'https://gemini.google.com/_/BardChatUi/data/assistant.lamda.BardFrontendService/StreamGenerate?hl=en-US',
+      new URLSearchParams({
+        'f.req': JSON.stringify(payload)
+      }).toString(),
+      {
+        headers: {
+          'content-type':
+            'application/x-www-form-urlencoded;charset=UTF-8',
+          'x-goog-ext-525001261-jspb':
+            '[1,null,null,null,"9ec249fc9ad08861",null,null,null,[4]]',
+          'cookie': cookie
+        }
+      }
+    );
+
+    const match = Array.from(data.matchAll(/^\d+\n(.+?)\n/gm));
+    const selectedArray = match.reverse()[3][1];
+    const realArray = JSON.parse(selectedArray);
+    const parse1 = JSON.parse(realArray[0][2]);
+
+    const newResumeArray = [
+      ...parse1[1],
+      parse1[4][0][0]
+    ];
+
+    const text = parse1[4][0][1][0]
+      .replace(/\*\*(.+?)\*\*/g, '*$1*');
+
+    const newSessionId = Buffer.from(JSON.stringify({
+      resumeArray: newResumeArray,
+      cookie,
+      instruction: savedInstruction
+    })).toString('base64');
+
+    res.status(200).json({
+      success: true,
+      response: text,
+      sessionId: newSessionId,
+      timestamp: new Date().toISOString()
+    });
+
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: 'Terjadi kesalahan saat mengambil data Gemini',
+      error: error.message
+    });
+  }
+});
+
 // Crypto functions
 const k = {
   enc: "GJvE5RZIxrl9SuNrAtgsvCfWha3M7NGC",
