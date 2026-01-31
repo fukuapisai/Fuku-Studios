@@ -1,10 +1,6 @@
-// script.js - Fuku APIs Dashboard
-
-// Configuration
 const API_BASE_URL = 'https://api.fukugpt.my.id';
-const ADMIN_API_KEY = 'doi';
+const ADMIN_API_KEY = 'fukuapikeysunli';
 
-// State Management
 let currentUser = null;
 let userApiKeys = [];
 let endpoints = [];
@@ -13,7 +9,6 @@ let otpCode = '';
 let otpTimeLeft = 300;
 let isMobileMenuOpen = false;
 
-// DOM Elements
 const loginModal = document.getElementById('loginModal');
 const userMenu = document.getElementById('userMenu');
 const userAvatar = document.getElementById('userAvatar');
@@ -34,20 +29,16 @@ const toastContainer = document.getElementById('toastContainer');
 const menuToggle = document.getElementById('menuToggle');
 const navLinks = document.querySelector('.fx-nav-links');
 
-// Chart instance
 let usageChart = null;
 
-// Initialize App
 document.addEventListener('DOMContentLoaded', () => {
     checkLoginStatus();
     setupEventListeners();
     loadEndpoints();
     updateDashboard();
     
-    // Close modals when clicking outside
     setupModalCloseHandlers();
     
-    // Show login modal if not logged in
     if (!currentUser) {
         setTimeout(() => {
             loginModal.style.display = 'flex';
@@ -56,7 +47,6 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 });
 
-// Check if user is logged in
 function checkLoginStatus() {
     try {
         const userData = localStorage.getItem('fuku_user');
@@ -65,27 +55,22 @@ function checkLoginStatus() {
             updateUIForLoggedInUser();
         }
     } catch (error) {
-        console.error('Error loading user data:', error);
         localStorage.removeItem('fuku_user');
         localStorage.removeItem('fuku_api_keys');
     }
 }
 
-// Setup all event listeners
 function setupEventListeners() {
-    // Login OTP
     document.getElementById('btnSendOTP').addEventListener('click', sendOTP);
     document.getElementById('btnVerifyOTP').addEventListener('click', verifyOTP);
     document.getElementById('btnResendOTP').addEventListener('click', resendOTP);
     
-    // OTP input auto-focus
     document.querySelectorAll('.fx-otp-input').forEach((input, index) => {
         input.addEventListener('input', (e) => {
             const value = e.target.value;
             if (value.length === 1 && index < 3) {
                 document.querySelector(`.fx-otp-input[data-index="${index + 1}"]`).focus();
             }
-            // Auto verify if all inputs are filled
             if (index === 3 && value.length === 1) {
                 const allFilled = Array.from(document.querySelectorAll('.fx-otp-input'))
                     .every(input => input.value.length === 1);
@@ -100,13 +85,11 @@ function setupEventListeners() {
                 document.querySelector(`.fx-otp-input[data-index="${index - 1}"]`).focus();
             }
             
-            // Allow only numbers
             if (!/^\d$/.test(e.key) && !['Backspace', 'Delete', 'ArrowLeft', 'ArrowRight', 'Tab'].includes(e.key)) {
                 e.preventDefault();
             }
         });
         
-        // Paste OTP
         input.addEventListener('paste', (e) => {
             e.preventDefault();
             const pasteData = e.clipboardData.getData('text').slice(0, 4);
@@ -122,18 +105,15 @@ function setupEventListeners() {
         });
     });
     
-    // User menu
     userAvatar.addEventListener('click', toggleUserMenu);
     document.getElementById('btnLogout').addEventListener('click', logout);
     
-    // Close dropdown when clicking outside
     document.addEventListener('click', (e) => {
         if (!userMenu.contains(e.target)) {
             userMenu.querySelector('.fx-user-dropdown').classList.remove('show');
         }
     });
     
-    // Create API Key
     document.getElementById('btnCreateApiKey').addEventListener('click', () => {
         createKeyModal.style.display = 'flex';
         document.body.style.overflow = 'hidden';
@@ -144,14 +124,12 @@ function setupEventListeners() {
     document.getElementById('btnCancelCreateKey').addEventListener('click', closeCreateKeyModal);
     document.getElementById('btnCreateKeyConfirm').addEventListener('click', createApiKey);
     
-    // API Tester
     document.getElementById('closeTester').addEventListener('click', closeTesterModal);
     document.getElementById('btnTestApi').addEventListener('click', testAPI);
     document.getElementById('btnResetTester').addEventListener('click', resetTester);
     document.getElementById('copyUrl').addEventListener('click', copyToClipboard);
     document.getElementById('copyResponse').addEventListener('click', copyResponse);
     
-    // Quick Actions
     document.querySelectorAll('.fx-action-btn').forEach(btn => {
         btn.addEventListener('click', (e) => {
             const endpoint = e.currentTarget.dataset.endpoint;
@@ -159,10 +137,8 @@ function setupEventListeners() {
         });
     });
     
-    // Menu Toggle for Mobile
     menuToggle.addEventListener('click', toggleMobileMenu);
     
-    // Close mobile menu when clicking on a link
     navLinks.querySelectorAll('a').forEach(link => {
         link.addEventListener('click', () => {
             navLinks.classList.remove('show');
@@ -170,7 +146,6 @@ function setupEventListeners() {
         });
     });
     
-    // Escape key to close modals
     document.addEventListener('keydown', (e) => {
         if (e.key === 'Escape') {
             if (loginModal.style.display === 'flex') loginModal.style.display = 'none';
@@ -181,9 +156,7 @@ function setupEventListeners() {
     });
 }
 
-// Setup modal close handlers
 function setupModalCloseHandlers() {
-    // Close modal when clicking outside
     window.addEventListener('click', (e) => {
         if (e.target === loginModal) {
             loginModal.style.display = 'none';
@@ -198,38 +171,31 @@ function setupModalCloseHandlers() {
     });
 }
 
-// Update UI for logged in user
 function updateUIForLoggedInUser() {
     if (!currentUser) return;
     
-    // Update user menu
     dropdownUserName.textContent = currentUser.name || 'User';
     dropdownUserEmail.textContent = currentUser.email || 'user@example.com';
     
-    // Set avatar with first letter of name
     const firstName = currentUser.name?.split(' ')[0] || 'U';
     userAvatar.innerHTML = `<span>${firstName.charAt(0).toUpperCase()}</span>`;
     userAvatar.style.background = getRandomGradient();
     
-    // Update hero section
     heroButtons.innerHTML = `
         <a href="#dashboard" class="fx-button-primary">
-            <i class="fas fa-tachometer-alt"></i> Go to Dashboard
+            <i class="fas fa-tachometer-alt"></i> Dashboard
         </a>
         <a href="#endpoints" class="fx-button-secondary">
-            <i class="fas fa-code"></i> Explore Endpoints
+            <i class="fas fa-code"></i> Endpoints
         </a>
     `;
     
-    // Hide login modal
     loginModal.style.display = 'none';
     document.body.style.overflow = '';
     
-    // Load user's API keys
     loadUserApiKeys();
 }
 
-// Send OTP
 async function sendOTP() {
     const nameInput = document.getElementById('userName');
     const emailInput = document.getElementById('userEmail');
@@ -250,55 +216,31 @@ async function sendOTP() {
         return;
     }
     
-    // Clear any previous highlights
     highlightInvalidInput(nameInput, false);
     highlightInvalidInput(emailInput, false);
     
-    // Generate random 4-digit OTP
     otpCode = Math.floor(1000 + Math.random() * 9000).toString();
     
-    // For demo purposes, auto-fill OTP
-    if (email.includes('@')) {
-        setTimeout(() => {
-            const otpInputs = document.querySelectorAll('.fx-otp-input');
-            otpCode.split('').forEach((digit, index) => {
-                if (otpInputs[index]) {
-                    otpInputs[index].value = digit;
-                }
-            });
-        }, 500);
-    }
-    
-    // Show loading state
     const sendBtn = document.getElementById('btnSendOTP');
     const originalHTML = sendBtn.innerHTML;
     sendBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Mengirim...';
     sendBtn.disabled = true;
     
     try {
-        // In production, this would be a real API call
-        // const response = await fetch(`${API_BASE_URL}/api/kodeotp?email=${encodeURIComponent(email)}&kode=${otpCode}&api=${ADMIN_API_KEY}`);
-        // const data = await response.json();
-        
-        // For demo, simulate API response
-        await new Promise(resolve => setTimeout(resolve, 1500));
-        const data = { status: true, message: 'OTP sent successfully' };
+        const response = await fetch(`${API_BASE_URL}/api/message?email=${encodeURIComponent(email)}&pesan=Kode%20OTP%20Anda:%20${otpCode}&api=${ADMIN_API_KEY}`);
+        const data = await response.json();
         
         if (data.status) {
-            // Store user data temporarily
             currentUser = { name, email };
             
-            // Show OTP step
             document.getElementById('loginStep1').classList.remove('active');
             document.getElementById('loginStep2').classList.add('active');
             document.getElementById('otpEmail').textContent = email;
             
-            // Start OTP timer
             startOTPTimer();
             
             showToast('success', 'OTP Terkirim', `Kode verifikasi telah dikirim ke ${email}`);
             
-            // Auto-focus first OTP input
             setTimeout(() => {
                 document.querySelector('.fx-otp-input[data-index="0"]').focus();
             }, 100);
@@ -306,16 +248,13 @@ async function sendOTP() {
             showToast('error', 'Error', data.message || 'Gagal mengirim OTP');
         }
     } catch (error) {
-        console.error('OTP Error:', error);
         showToast('error', 'Error', 'Terjadi kesalahan saat mengirim OTP');
     } finally {
-        // Restore button state
         sendBtn.innerHTML = originalHTML;
         sendBtn.disabled = false;
     }
 }
 
-// Verify OTP
 function verifyOTP() {
     const otpInputs = document.querySelectorAll('.fx-otp-input');
     const enteredOTP = Array.from(otpInputs).map(input => input.value).join('');
@@ -325,12 +264,10 @@ function verifyOTP() {
         return;
     }
     
-    // For demo, accept any OTP
-    const isValidOTP = enteredOTP === otpCode || (otpCode === '' && enteredOTP.length === 4);
+    const isValidOTP = enteredOTP === otpCode;
     
     if (!isValidOTP) {
         showToast('error', 'Error', 'Kode OTP salah');
-        // Shake animation
         otpInputs.forEach(input => {
             input.style.animation = 'shake 0.5s';
             setTimeout(() => input.style.animation = '', 500);
@@ -338,19 +275,15 @@ function verifyOTP() {
         return;
     }
     
-    // Save user to localStorage
     try {
         localStorage.setItem('fuku_user', JSON.stringify(currentUser));
     } catch (error) {
-        console.error('Error saving user data:', error);
         showToast('error', 'Error', 'Gagal menyimpan data pengguna');
         return;
     }
     
-    // Update UI
     updateUIForLoggedInUser();
     
-    // Clear OTP timer
     if (otpTimer) {
         clearInterval(otpTimer);
         otpTimer = null;
@@ -359,49 +292,46 @@ function verifyOTP() {
     showToast('success', 'Selamat Datang!', `Halo ${currentUser.name}`);
 }
 
-// Resend OTP
 function resendOTP() {
     if (!currentUser || !currentUser.email) {
         showToast('error', 'Error', 'Email tidak ditemukan');
         return;
     }
     
-    // Generate new OTP
     otpCode = Math.floor(1000 + Math.random() * 9000).toString();
     
-    // Show loading
     const resendBtn = document.getElementById('btnResendOTP');
     const originalHTML = resendBtn.innerHTML;
     resendBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
     resendBtn.disabled = true;
     
-    // Simulate API call
-    setTimeout(() => {
-        // Reset OTP inputs
-        document.querySelectorAll('.fx-otp-input').forEach(input => input.value = '');
-        document.querySelector('.fx-otp-input[data-index="0"]').focus();
-        
-        // Reset timer
-        if (otpTimer) {
-            clearInterval(otpTimer);
-        }
-        startOTPTimer();
-        
-        // Restore button
-        resendBtn.innerHTML = originalHTML;
-        resendBtn.disabled = false;
-        
-        showToast('success', 'OTP Dikirim Ulang', 'Kode verifikasi baru telah dikirim');
-    }, 1000);
+    fetch(`${API_BASE_URL}/api/message?email=${encodeURIComponent(currentUser.email)}&pesan=Kode%20OTP%20baru:%20${otpCode}&api=${ADMIN_API_KEY}`)
+        .then(() => {
+            document.querySelectorAll('.fx-otp-input').forEach(input => input.value = '');
+            document.querySelector('.fx-otp-input[data-index="0"]').focus();
+            
+            if (otpTimer) {
+                clearInterval(otpTimer);
+            }
+            startOTPTimer();
+            
+            resendBtn.innerHTML = originalHTML;
+            resendBtn.disabled = false;
+            
+            showToast('success', 'OTP Dikirim Ulang', 'Kode verifikasi baru telah dikirim');
+        })
+        .catch(() => {
+            resendBtn.innerHTML = originalHTML;
+            resendBtn.disabled = false;
+            showToast('error', 'Error', 'Gagal mengirim OTP ulang');
+        });
 }
 
-// Start OTP timer
 function startOTPTimer() {
-    let timeLeft = 300; // 5 minutes
+    let timeLeft = 300;
     const timerElement = document.getElementById('otpTimer');
     const verifyBtn = document.getElementById('btnVerifyOTP');
     
-    // Update immediately
     timerElement.textContent = timeLeft;
     verifyBtn.disabled = false;
     
@@ -422,19 +352,16 @@ function startOTPTimer() {
     }, 1000);
 }
 
-// Toggle user menu
 function toggleUserMenu(e) {
     e.stopPropagation();
     const dropdown = userMenu.querySelector('.fx-user-dropdown');
     dropdown.classList.toggle('show');
 }
 
-// Toggle mobile menu
 function toggleMobileMenu() {
     isMobileMenuOpen = !isMobileMenuOpen;
     navLinks.classList.toggle('show');
     
-    // Toggle icon
     const icon = menuToggle.querySelector('i');
     if (isMobileMenuOpen) {
         icon.className = 'fas fa-times';
@@ -443,27 +370,22 @@ function toggleMobileMenu() {
     }
 }
 
-// Logout
 function logout() {
     if (confirm('Apakah Anda yakin ingin keluar?')) {
         try {
             localStorage.removeItem('fuku_user');
             localStorage.removeItem('fuku_api_keys');
-        } catch (error) {
-            console.error('Error clearing storage:', error);
-        }
+        } catch (error) {}
         
         currentUser = null;
         userApiKeys = [];
         
-        // Reset UI
         dropdownUserName.textContent = 'Guest';
         dropdownUserEmail.textContent = 'guest@example.com';
         userAvatar.innerHTML = '<i class="fas fa-user"></i>';
         userAvatar.style.background = 'linear-gradient(135deg, var(--primary), var(--secondary))';
         heroButtons.innerHTML = '';
         
-        // Reset API keys list
         apiKeysList.innerHTML = `
             <div class="fx-empty-state">
                 <i class="fas fa-key"></i>
@@ -471,10 +393,8 @@ function logout() {
             </div>
         `;
         
-        // Reset dashboard stats
         updateDashboardStats();
         
-        // Show login modal
         loginModal.style.display = 'flex';
         document.body.style.overflow = 'hidden';
         document.getElementById('loginStep1').classList.add('active');
@@ -482,7 +402,6 @@ function logout() {
         document.getElementById('userEmail').value = '';
         document.getElementById('userName').value = '';
         
-        // Close mobile menu if open
         if (isMobileMenuOpen) {
             toggleMobileMenu();
         }
@@ -491,39 +410,25 @@ function logout() {
     }
 }
 
-// Load user's API keys
 async function loadUserApiKeys() {
     if (!currentUser) return;
     
     try {
-        // Try to load from localStorage first
         const savedKeys = localStorage.getItem('fuku_api_keys');
         if (savedKeys) {
             userApiKeys = JSON.parse(savedKeys);
         } else {
-            // If no saved keys, create a demo key for new users
-            userApiKeys = [{
-                key: 'demo_' + generateRandomKey(32),
-                name: 'Demo API Key',
-                created: new Date().toISOString(),
-                remaining: 20,
-                totalUsed: 0,
-                lastUsed: null
-            }];
-            localStorage.setItem('fuku_api_keys', JSON.stringify(userApiKeys));
+            userApiKeys = [];
         }
         
-        // Update UI
         updateApiKeysList();
         updateDashboardStats();
         
     } catch (error) {
-        console.error('Error loading API keys:', error);
         showToast('error', 'Error', 'Gagal memuat API keys');
     }
 }
 
-// Create new API key
 async function createApiKey() {
     if (!currentUser) {
         showToast('error', 'Error', 'Harap login terlebih dahulu');
@@ -541,70 +446,62 @@ async function createApiKey() {
     
     highlightInvalidInput(keyNameInput, false);
     
-    // Check if user already has maximum keys (demo: 3 keys max)
     if (userApiKeys.length >= 3) {
         showToast('warning', 'Peringatan', 'Maksimal 3 API keys per user');
         return;
     }
     
-    // Show loading
     const createBtn = document.getElementById('btnCreateKeyConfirm');
     const originalHTML = createBtn.innerHTML;
     createBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Membuat...';
     createBtn.disabled = true;
     
     try {
-        // Simulate API call delay
-        await new Promise(resolve => setTimeout(resolve, 1500));
+        const fullKeyName = `${keyName} (${currentUser.email})`;
         
-        // Generate demo API key
-        const demoApiKey = 'fk_' + generateRandomKey(32);
+        const response = await fetch(`${API_BASE_URL}/api/createapikey?keys=${encodeURIComponent(fullKeyName)}&apikeyAdmin=${ADMIN_API_KEY}`);
+        const data = await response.json();
         
-        // Add to user's keys
-        const newKey = {
-            key: demoApiKey,
-            name: keyName + (currentUser.email ? ` (${currentUser.email})` : ''),
-            created: new Date().toISOString(),
-            remaining: 20,
-            totalUsed: 0,
-            lastUsed: null
-        };
-        
-        userApiKeys.push(newKey);
-        
-        // Save to localStorage
-        try {
-            localStorage.setItem('fuku_api_keys', JSON.stringify(userApiKeys));
-        } catch (error) {
-            console.error('Error saving API keys:', error);
-            showToast('error', 'Error', 'Gagal menyimpan API key');
-            return;
+        if (data.status) {
+            const newKey = {
+                key: data.apiKey,
+                name: fullKeyName,
+                created: new Date().toISOString(),
+                remaining: 20,
+                totalUsed: 0,
+                lastUsed: null
+            };
+            
+            userApiKeys.push(newKey);
+            
+            try {
+                localStorage.setItem('fuku_api_keys', JSON.stringify(userApiKeys));
+            } catch (error) {
+                showToast('error', 'Error', 'Gagal menyimpan API key');
+                return;
+            }
+            
+            updateApiKeysList();
+            updateDashboardStats();
+            
+            closeCreateKeyModal();
+            keyNameInput.value = '';
+            
+            showToast('success', 'API Key Created', 'API key berhasil dibuat');
+            
+            copyToClipboardText(data.apiKey, 'API key telah disalin ke clipboard');
+            
+        } else {
+            showToast('error', 'Error', data.message || 'Gagal membuat API key');
         }
-        
-        // Update UI
-        updateApiKeysList();
-        updateDashboardStats();
-        
-        // Close modal and reset form
-        closeCreateKeyModal();
-        keyNameInput.value = '';
-        
-        showToast('success', 'API Key Created', 'API key berhasil dibuat');
-        
-        // Copy API key to clipboard
-        copyToClipboardText(demoApiKey, 'API key telah disalin ke clipboard');
-        
     } catch (error) {
-        console.error('Error creating API key:', error);
         showToast('error', 'Error', 'Terjadi kesalahan saat membuat API key');
     } finally {
-        // Restore button
         createBtn.innerHTML = originalHTML;
         createBtn.disabled = false;
     }
 }
 
-// Update API keys list in UI
 function updateApiKeysList() {
     if (!userApiKeys || userApiKeys.length === 0) {
         apiKeysList.innerHTML = `
@@ -659,8 +556,7 @@ function updateApiKeysList() {
     `).join('');
 }
 
-// Toggle API key visibility
-function toggleKeyVisibility(index) {
+window.toggleKeyVisibility = function(index) {
     const fullKeyElement = document.getElementById(`fullKey-${index}`);
     const eyeIcon = document.querySelector(`#fullKey-${index}`).previousElementSibling
         .querySelector('.fx-show-btn i');
@@ -672,10 +568,9 @@ function toggleKeyVisibility(index) {
         fullKeyElement.style.display = 'none';
         eyeIcon.className = 'fas fa-eye';
     }
-}
+};
 
-// Delete API key
-function deleteApiKey(index) {
+window.deleteApiKey = function(index) {
     if (!confirm('Apakah Anda yakin ingin menghapus API key ini?')) {
         return;
     }
@@ -684,28 +579,22 @@ function deleteApiKey(index) {
     
     try {
         localStorage.setItem('fuku_api_keys', JSON.stringify(userApiKeys));
-    } catch (error) {
-        console.error('Error saving after deletion:', error);
-    }
+    } catch (error) {}
     
     updateApiKeysList();
     updateDashboardStats();
     
     showToast('success', 'Deleted', 'API key berhasil dihapus');
-}
+};
 
-// Copy API key to clipboard
-function copyApiKey(key) {
+window.copyApiKey = function(key) {
     copyToClipboardText(key, 'API key telah disalin ke clipboard');
-}
+};
 
-// Test API with specific key
-function testWithKey(apiKey) {
-    // Open tester with first endpoint and this key
+window.testWithKey = function(apiKey) {
     openAPITester('tiktok', apiKey);
-}
+};
 
-// Update dashboard statistics
 function updateDashboardStats() {
     const totalRemaining = userApiKeys.reduce((sum, key) => sum + (key.remaining || 0), 0);
     const totalUsed = userApiKeys.reduce((sum, key) => sum + (key.totalUsed || 0), 0);
@@ -717,24 +606,19 @@ function updateDashboardStats() {
     totalRequests.textContent = totalUsed;
     remainingRequests.textContent = totalRemaining;
     
-    // Calculate success rate (demo: 95% if used, 0% if not)
     const rate = totalUsed > 0 ? 95 : 0;
     successRate.textContent = `${rate}%`;
     
-    // Update chart
     updateUsageChart();
 }
 
-// Update usage chart
 function updateUsageChart() {
     const ctx = document.getElementById('usageChartCanvas').getContext('2d');
     
-    // Destroy existing chart if exists
     if (usageChart) {
         usageChart.destroy();
     }
     
-    // Demo data
     const days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
     const requestsData = userApiKeys.length > 0 ? 
         [12, 19, 8, 15, 22, 18, 25] : 
@@ -810,13 +694,12 @@ function updateUsageChart() {
     });
 }
 
-// Load available endpoints
 function loadEndpoints() {
     endpoints = [
         {
             id: 'tiktok',
             name: 'TikTok Downloader',
-            description: 'Download video TikTok tanpa watermark. Mendukung semua format video.',
+            description: 'Download video TikTok tanpa watermark.',
             method: 'GET',
             path: '/api/tiktok',
             icon: 'fab fa-tiktok',
@@ -828,7 +711,7 @@ function loadEndpoints() {
         {
             id: 'dolphin',
             name: 'Dolphin AI Chat',
-            description: 'Chat AI dengan berbagai template otak yang bisa disesuaikan.',
+            description: 'Chat AI dengan berbagai template otak.',
             method: 'GET',
             path: '/api/dolphin',
             icon: 'fas fa-brain',
@@ -847,7 +730,7 @@ function loadEndpoints() {
         {
             id: 'turboseek',
             name: 'Turboseek AI Search',
-            description: 'Search engine AI dengan sumber terpercaya dan hasil real-time.',
+            description: 'Search engine AI dengan sumber terpercaya.',
             method: 'GET',
             path: '/api/turboseek',
             icon: 'fas fa-search',
@@ -859,7 +742,7 @@ function loadEndpoints() {
         {
             id: 'base64',
             name: 'Base64 Encoder',
-            description: 'Convert text to Base64 format dengan encoding yang aman.',
+            description: 'Convert text to Base64 format.',
             method: 'GET',
             path: '/api/tobase64',
             icon: 'fas fa-code',
@@ -871,7 +754,7 @@ function loadEndpoints() {
         {
             id: 'message',
             name: 'Send Email',
-            description: 'Kirim email melalui API dengan template yang bisa disesuaikan.',
+            description: 'Kirim email melalui API.',
             method: 'GET',
             path: '/api/message',
             icon: 'fas fa-envelope',
@@ -884,7 +767,7 @@ function loadEndpoints() {
         {
             id: 'fukucek',
             name: 'Check Payment',
-            description: 'Cek status pembayaran QRIS dengan mudah dan cepat.',
+            description: 'Cek status pembayaran QRIS.',
             method: 'GET',
             path: '/api/fukucek',
             icon: 'fas fa-qrcode',
@@ -898,7 +781,6 @@ function loadEndpoints() {
     renderEndpoints();
 }
 
-// Render endpoints grid
 function renderEndpoints() {
     endpointsGrid.innerHTML = endpoints.map(endpoint => `
         <div class="fx-endpoint-card" onclick="openAPITester('${endpoint.id}')">
@@ -915,7 +797,6 @@ function renderEndpoints() {
     `).join('');
 }
 
-// Open API tester modal
 function openAPITester(endpointId, apiKey = null) {
     if (!currentUser) {
         showToast('error', 'Error', 'Harap login terlebih dahulu');
@@ -930,7 +811,6 @@ function openAPITester(endpointId, apiKey = null) {
         return;
     }
     
-    // Use provided key or user's first API key
     const userApiKey = apiKey || (userApiKeys[0] ? userApiKeys[0].key : null);
     
     if (!userApiKey) {
@@ -940,14 +820,11 @@ function openAPITester(endpointId, apiKey = null) {
         return;
     }
     
-    // Update modal title
     document.getElementById('testerTitle').textContent = endpoint.name;
     
-    // Build URL
     const baseUrl = `${API_BASE_URL}${endpoint.path}?api=${userApiKey}`;
     document.getElementById('apiUrl').value = baseUrl;
     
-    // Build parameters form
     const paramsContainer = document.getElementById('testerParams');
     paramsContainer.innerHTML = endpoint.parameters.map(param => {
         if (param.type === 'select') {
@@ -993,7 +870,6 @@ function openAPITester(endpointId, apiKey = null) {
         `;
     }).join('');
     
-    // Add API key info
     paramsContainer.innerHTML += `
         <div class="fx-param-info">
             <i class="fas fa-key"></i>
@@ -1001,18 +877,15 @@ function openAPITester(endpointId, apiKey = null) {
         </div>
     `;
     
-    // Show modal
     apiTesterModal.style.display = 'flex';
     document.body.style.overflow = 'hidden';
     
-    // Focus first input
     setTimeout(() => {
         const firstInput = paramsContainer.querySelector('input, select, textarea');
         if (firstInput) firstInput.focus();
     }, 100);
 }
 
-// Test API endpoint
 async function testAPI() {
     if (!currentUser) {
         showToast('error', 'Error', 'Harap login terlebih dahulu');
@@ -1026,23 +899,20 @@ async function testAPI() {
     }
     
     const urlInput = document.getElementById('apiUrl');
-    let url = urlInput.value.split('?')[0]; // Remove existing params
+    let url = urlInput.value.split('?')[0];
     
-    // Collect parameters
     const params = new URLSearchParams();
     params.append('api', userApiKey);
     
     const paramInputs = document.querySelectorAll('#testerParams .fx-param-input, #testerParams .fx-param-select, #testerParams .fx-param-textarea');
     let hasErrors = false;
     
-    // Clear previous errors
     paramInputs.forEach(input => {
         input.classList.remove('error');
         const errorMsg = input.parentNode.querySelector('.fx-error-message');
         if (errorMsg) errorMsg.remove();
     });
     
-    // Validate inputs
     paramInputs.forEach(input => {
         const name = input.dataset.name;
         const value = input.value.trim();
@@ -1067,11 +937,9 @@ async function testAPI() {
     
     if (hasErrors) return;
     
-    // Build final URL
     const finalUrl = `${url}?${params.toString()}`;
     urlInput.value = finalUrl;
     
-    // Show loading
     const responseOutput = document.getElementById('apiResponse');
     responseOutput.innerHTML = '<code class="language-json">Loading...</code>';
     
@@ -1081,74 +949,30 @@ async function testAPI() {
     testBtn.disabled = true;
     
     try {
-        // Simulate API call with demo response
-        await new Promise(resolve => setTimeout(resolve, 2000));
+        const response = await fetch(finalUrl);
+        const data = await response.json();
         
-        // Demo response based on endpoint
-        const endpointId = document.getElementById('testerTitle').textContent.toLowerCase();
-        let demoResponse = {
-            status: true,
-            message: 'Request berhasil',
-            data: null,
-            timestamp: new Date().toISOString()
-        };
-        
-        // Add endpoint-specific demo data
-        if (endpointId.includes('tiktok')) {
-            demoResponse.data = {
-                url: 'https://example.com/tiktok/video.mp4',
-                thumbnail: 'https://example.com/thumbnail.jpg',
-                duration: '15s',
-                size: '2.5MB',
-                author: '@username'
-            };
-        } else if (endpointId.includes('dolphin')) {
-            demoResponse.data = {
-                response: 'Ini adalah respon demo dari AI. Fitur ini akan memberikan jawaban yang sesuai dengan pertanyaan Anda.',
-                tokens: 45,
-                processing_time: '1.2s'
-            };
-        } else if (endpointId.includes('search')) {
-            demoResponse.data = {
-                results: [
-                    { title: 'Result 1', url: 'https://example.com/1', snippet: 'Demo result snippet 1' },
-                    { title: 'Result 2', url: 'https://example.com/2', snippet: 'Demo result snippet 2' }
-                ],
-                total_results: 2
-            };
-        } else {
-            demoResponse.data = { input: Array.from(params.entries()) };
-        }
-        
-        // Format JSON response
-        const formattedJson = JSON.stringify(demoResponse, null, 2);
+        const formattedJson = JSON.stringify(data, null, 2);
         responseOutput.innerHTML = `<code class="language-json">${escapeHtml(formattedJson)}</code>`;
         
-        // Apply Prism syntax highlighting
         Prism.highlightAllUnder(responseOutput);
         
-        // Update API key usage if successful
-        if (demoResponse.status && userApiKeys[0]) {
+        if (data.status && userApiKeys[0]) {
             userApiKeys[0].remaining = Math.max(0, userApiKeys[0].remaining - 1);
             userApiKeys[0].totalUsed = (userApiKeys[0].totalUsed || 0) + 1;
             userApiKeys[0].lastUsed = new Date().toISOString();
             
-            // Update UI
             updateApiKeysList();
             updateDashboardStats();
             
-            // Save to localStorage
             try {
                 localStorage.setItem('fuku_api_keys', JSON.stringify(userApiKeys));
-            } catch (error) {
-                console.error('Error saving API key usage:', error);
-            }
+            } catch (error) {}
         }
         
         showToast('success', 'Success', 'API request berhasil');
         
     } catch (error) {
-        console.error('API Error:', error);
         responseOutput.innerHTML = `<code class="language-json">{
   "error": "${escapeHtml(error.message)}",
   "status": false,
@@ -1156,68 +980,55 @@ async function testAPI() {
 }</code>`;
         showToast('error', 'Error', 'Gagal melakukan request API');
     } finally {
-        // Restore button
         testBtn.innerHTML = originalHTML;
         testBtn.disabled = false;
         
-        // Re-apply syntax highlighting for error case
         Prism.highlightAllUnder(responseOutput);
     }
 }
 
-// Reset API tester
 function resetTester() {
-    // Clear inputs
     document.querySelectorAll('#testerParams input, #testerParams select, #testerParams textarea').forEach(input => {
         input.value = '';
         input.classList.remove('error');
         
-        // Reset select to first option
         if (input.tagName === 'SELECT') {
             input.selectedIndex = 0;
         }
         
-        // Remove error messages
         const errorMsg = input.parentNode.querySelector('.fx-error-message');
         if (errorMsg) errorMsg.remove();
     });
     
-    // Reset response
     document.getElementById('apiResponse').innerHTML = `<code class="language-json">{
   "status": "ready",
   "message": "Masukkan parameter dan klik Test API"
 }</code>`;
     
-    // Re-apply syntax highlighting
     Prism.highlightAllUnder(document.getElementById('apiResponse'));
 }
 
-// Close tester modal
 function closeTesterModal() {
     apiTesterModal.style.display = 'none';
     document.body.style.overflow = '';
 }
 
-// Close create key modal
 function closeCreateKeyModal() {
     createKeyModal.style.display = 'none';
     document.body.style.overflow = '';
     document.getElementById('keyName').value = '';
 }
 
-// Copy URL to clipboard
 function copyToClipboard() {
     const url = document.getElementById('apiUrl').value;
     copyToClipboardText(url, 'URL telah disalin ke clipboard');
 }
 
-// Copy response to clipboard
 function copyResponse() {
     const responseText = document.getElementById('apiResponse').textContent;
     copyToClipboardText(responseText, 'Response telah disalin ke clipboard');
 }
 
-// Generic copy to clipboard function
 function copyToClipboardText(text, successMessage) {
     if (!text || text === 'Loading...') {
         showToast('warning', 'Warning', 'Tidak ada teks untuk disalin');
@@ -1227,8 +1038,6 @@ function copyToClipboardText(text, successMessage) {
     navigator.clipboard.writeText(text).then(() => {
         showToast('success', 'Copied', successMessage);
     }).catch(err => {
-        console.error('Copy failed:', err);
-        // Fallback for older browsers
         const textArea = document.createElement('textarea');
         textArea.value = text;
         document.body.appendChild(textArea);
@@ -1243,7 +1052,6 @@ function copyToClipboardText(text, successMessage) {
     });
 }
 
-// Show input error
 function showInputError(input, message) {
     input.classList.add('error');
     const errorDiv = document.createElement('div');
@@ -1255,7 +1063,6 @@ function showInputError(input, message) {
     input.parentNode.appendChild(errorDiv);
 }
 
-// Highlight invalid input
 function highlightInvalidInput(input, isInvalid) {
     if (isInvalid) {
         input.style.borderColor = '#f94144';
@@ -1266,7 +1073,6 @@ function highlightInvalidInput(input, isInvalid) {
     }
 }
 
-// Show toast notification
 function showToast(type, title, message) {
     const icons = {
         success: 'fas fa-check-circle',
@@ -1299,7 +1105,6 @@ function showToast(type, title, message) {
         </button>
     `;
     
-    // Add close button styling
     const style = document.createElement('style');
     style.textContent = `
         .fx-toast-close {
@@ -1320,15 +1125,12 @@ function showToast(type, title, message) {
     
     toastContainer.appendChild(toast);
     
-    // Auto remove after 5 seconds
     const autoRemove = setTimeout(() => {
         removeToast(toastId);
     }, 5000);
     
-    // Store timeout ID for manual removal
     toast.dataset.timeoutId = autoRemove;
     
-    // Add click to dismiss
     toast.addEventListener('click', (e) => {
         if (!e.target.closest('.fx-toast-close')) {
             removeToast(toastId);
@@ -1336,26 +1138,22 @@ function showToast(type, title, message) {
     });
 }
 
-// Remove toast notification
-function removeToast(toastId) {
+window.removeToast = function(toastId) {
     const toast = document.getElementById(toastId);
     if (!toast) return;
     
-    // Clear auto-remove timeout
     if (toast.dataset.timeoutId) {
         clearTimeout(toast.dataset.timeoutId);
     }
     
-    // Animate out
     toast.style.animation = 'toastSlideOut 0.3s ease forwards';
     setTimeout(() => {
         if (toast.parentNode) {
             toast.parentNode.removeChild(toast);
         }
     }, 300);
-}
+};
 
-// Utility functions
 function validateEmail(email) {
     const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     return re.test(email);
@@ -1404,7 +1202,6 @@ function escapeHtml(text) {
     return div.innerHTML;
 }
 
-// Add shake animation for errors
 const shakeStyle = document.createElement('style');
 shakeStyle.textContent = `
     @keyframes shake {
@@ -1433,7 +1230,7 @@ shakeStyle.textContent = `
         gap: 10px;
         padding: 12px;
         background: #f8f9fa;
-        border-radius: var(--border-radius-sm);
+        border-radius: 8px;
         margin-top: 20px;
         color: var(--gray);
         font-size: 0.9rem;
@@ -1473,7 +1270,7 @@ shakeStyle.textContent = `
         margin: 10px 0;
         padding: 10px;
         background: rgba(0, 0, 0, 0.2);
-        border-radius: var(--border-radius-sm);
+        border-radius: 8px;
         overflow-x: auto;
     }
     
