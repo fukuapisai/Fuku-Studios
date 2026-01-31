@@ -332,7 +332,7 @@ app.post('/contact', async (req, res) => {
   try {
     await resend.emails.send({
       from: "Contact Form <onboarding@resend.dev>",
-      to: "sigmaskibidilbk@gmail.com",
+      to: "ahmadlbk12345@gmail.com",
       subject: "Pesan Baru dari Contact Form",
       html: `
         <div style="font-family:Arial;background:#f2f2f2;padding:20px">
