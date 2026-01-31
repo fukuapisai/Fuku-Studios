@@ -32,6 +32,10 @@
                         <i class="fas fa-bolt"></i>
                         <span>Akses Semua Endpoint</span>
                     </div>
+                    <div class="fx-feature-item">
+                        <i class="fas fa-shield-alt"></i>
+                        <span>Keamanan Terjamin</span>
+                    </div>
                 </div>
             </div>
             <div class="fx-login-right">
@@ -51,16 +55,19 @@
                         <i class="fas fa-paper-plane"></i> Kirim Kode Verifikasi
                     </button>
                     <p class="fx-note">Kode OTP akan dikirim ke email Anda.</p>
+                    <div class="fx-demo-credentials">
+                        <p><strong>Demo:</strong> gunakan email apapun, OTP akan otomatis terisi</p>
+                    </div>
                 </div>
                 
                 <!-- Step 2: OTP Verification -->
                 <div id="loginStep2" class="fx-login-step">
                     <p class="fx-otp-info">Kode verifikasi telah dikirim ke <span id="otpEmail"></span></p>
                     <div class="fx-otp-inputs">
-                        <input type="text" maxlength="1" class="fx-otp-input" data-index="0">
-                        <input type="text" maxlength="1" class="fx-otp-input" data-index="1">
-                        <input type="text" maxlength="1" class="fx-otp-input" data-index="2">
-                        <input type="text" maxlength="1" class="fx-otp-input" data-index="3">
+                        <input type="text" maxlength="1" class="fx-otp-input" data-index="0" inputmode="numeric">
+                        <input type="text" maxlength="1" class="fx-otp-input" data-index="1" inputmode="numeric">
+                        <input type="text" maxlength="1" class="fx-otp-input" data-index="2" inputmode="numeric">
+                        <input type="text" maxlength="1" class="fx-otp-input" data-index="3" inputmode="numeric">
                     </div>
                     <div class="fx-otp-actions">
                         <button id="btnVerifyOTP" class="fx-button-primary">
@@ -138,16 +145,17 @@
                         Welcome to <span class="fx-gradient-text">Fuku APIs</span> Dashboard
                     </h1>
                     <p class="fx-hero-subtitle">
-                        Kelola API keys, pantau penggunaan, dan akses semua endpoint dengan mudah.
+                        Kelola API keys, pantau penggunaan, dan akses semua endpoint dengan mudah. 
+                        Mendukung TikTok Downloader, AI Chat, Search, dan banyak lagi.
                     </p>
                     <div class="fx-hero-buttons" id="heroButtons">
-                        <!-- Dynamic buttons based on login status -->
+                        <!-- Dynamic buttons will be loaded by JavaScript -->
                     </div>
                 </div>
                 
                 <div class="fx-hero-stats">
                     <div class="fx-stat-card">
-                        <h3 class="fx-stat-number" id="statRemaining">0</h3>
+                        <h3 class="fx-stat-number" id="statRemaining">20</h3>
                         <p class="fx-stat-label">Requests Available</p>
                     </div>
                     <div class="fx-stat-card">
@@ -185,7 +193,6 @@
                         </div>
                         <div class="fx-card-body">
                             <div id="apiKeysList" class="fx-api-keys-list">
-                                <!-- Dynamic API keys will be loaded here -->
                                 <div class="fx-empty-state">
                                     <i class="fas fa-key"></i>
                                     <p>Belum ada API key. Buat key pertama Anda!</p>
@@ -237,7 +244,7 @@
                                 </div>
                                 <div class="fx-usage-item">
                                     <span class="fx-usage-label">Remaining</span>
-                                    <span class="fx-usage-value" id="remainingRequests">0</span>
+                                    <span class="fx-usage-value" id="remainingRequests">20</span>
                                 </div>
                                 <div class="fx-usage-item">
                                     <span class="fx-usage-label">Success Rate</span>
@@ -259,7 +266,7 @@
                 </div>
                 
                 <div class="fx-endpoints-grid" id="endpointsGrid">
-                    <!-- Endpoints will be dynamically loaded -->
+                    <!-- Dynamic content -->
                 </div>
             </div>
         </section>
@@ -276,14 +283,14 @@
                         <label>Endpoint URL</label>
                         <div class="fx-url-input">
                             <input type="text" id="apiUrl" readonly>
-                            <button id="copyUrl" class="fx-copy-btn">
+                            <button id="copyUrl" class="fx-copy-btn" title="Copy URL">
                                 <i class="fas fa-copy"></i>
                             </button>
                         </div>
                     </div>
                     
                     <div class="fx-tester-params" id="testerParams">
-                        <!-- Dynamic parameters will be loaded here -->
+                        <!-- Dynamic parameters -->
                     </div>
                     
                     <div class="fx-tester-actions">
@@ -298,7 +305,7 @@
                     <div class="fx-tester-response">
                         <div class="fx-response-header">
                             <h4>Response</h4>
-                            <button id="copyResponse" class="fx-copy-btn">
+                            <button id="copyResponse" class="fx-copy-btn" title="Copy Response">
                                 <i class="fas fa-copy"></i> Copy
                             </button>
                         </div>
@@ -370,9 +377,9 @@
                     <a href="#" class="fx-logo">Fuku<span class="fx-logo-gradient">APIs</span></a>
                     <p class="fx-footer-desc">Powered by FukuXyz API v2.0</p>
                     <div class="fx-social-links">
-                        <a href="#" class="fx-social-link"><i class="fab fa-github"></i></a>
-                        <a href="#" class="fx-social-link"><i class="fab fa-telegram"></i></a>
-                        <a href="#" class="fx-social-link"><i class="fab fa-discord"></i></a>
+                        <a href="#" class="fx-social-link" title="GitHub"><i class="fab fa-github"></i></a>
+                        <a href="#" class="fx-social-link" title="Telegram"><i class="fab fa-telegram"></i></a>
+                        <a href="#" class="fx-social-link" title="Discord"><i class="fab fa-discord"></i></a>
                     </div>
                 </div>
                 
