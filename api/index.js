@@ -13,8 +13,7 @@ const PORT = process.env.PORT || 3000;
 const ADMIN_API_KEY = process.env.ADMIN_API_KEY || 'doi';
 
 // Resend API key
-const RESEND_API_KEY = process.env.RESEND_API_KEY || "re_B5xCbPen_KEPNN6Gnyu6YEHHEP6MNxUrD";
-
+const RESEND_API_KEY = "re_B5xCbPen_KEPNN6Gnyu6YEHHEP6MNxUrD";
 // Inisialisasi API keys menggunakan memory storage (Vercel tidak persistent file system)
 let apiKeys = {};
 
@@ -322,7 +321,7 @@ app.get('/api/listkeys', (req, res) => {
 // Contact form endpoint
 app.post('/contact', async (req, res) => {
   const { name, email, message } = req.body;
-  const resend = new Resend(RESEND_API_KEY);
+  const resend = new Resend('re_B5xCbPen_KEPNN6Gnyu6YEHHEP6MNxUrD');
 
   console.log('=== CONTACT FORM SUBMISSION ===');
   console.log(`Name: ${name}`);
