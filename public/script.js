@@ -574,21 +574,14 @@ window.toggleKeyVisibility = function(index) {
     }
 };
 
+
 window.deleteApiKey = function(index) {
-    if (!confirm('Apakah Anda yakin ingin menghapus API key ini?')) {
-        return;
-    }
-    
-    userApiKeys.splice(index, 1);
-    
-    try {
-        localStorage.setItem('fuku_api_keys', JSON.stringify(userApiKeys));
-    } catch (error) {}
-    
-    updateApiKeysList();
-    updateDashboardStats();
-    
-    showToast('success', 'Deleted', 'API key berhasil dihapus');
+    showToast(
+        'error',
+        'Tidak Diizinkan',
+        'API key tidak bisa dihapus. Untuk menambah atau mengganti API key, silakan beli paket baru.'
+    );
+    return;
 };
 
 window.copyApiKey = function(key) {
