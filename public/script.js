@@ -592,21 +592,32 @@ window.testWithKey = function(apiKey) {
     openAPITester('tiktok', apiKey);
 };
 
-function updateDashboardStats() {
-    const totalRemaining = userApiKeys.reduce((sum, key) => sum + (key.remaining || 0), 0);
-    const totalUsed = userApiKeys.reduce((sum, key) => sum + (key.totalUsed || 0), 0);
-    
-    statRemaining.textContent = totalRemaining;
-    statUsed.textContent = totalUsed;
-    statKeys.textContent = userApiKeys.length;
-    
-    totalRequests.textContent = totalUsed;
-    remainingRequests.textContent = totalRemaining;
-    
-    const rate = totalUsed > 0 ? 95 : 0;
-    successRate.textContent = `${rate}%`;
-    
-    updateUsageChart();
+function updateDashboardStats(apiKey) {
+    fetch(`https://api.fukugpt.my.id/api/cekapikey?api=${apiKey}`)
+        .then(res => res.json())
+        .then(data => {
+            if (!data.status) return;
+
+            const info = data.info;
+
+            statRemaining.textContent = info.remaining;
+            statUsed.textContent = info.totalUsed;
+            statKeys.textContent = 1;
+
+            totalRequests.textContent = info.totalUsed;
+            remainingRequests.textContent = info.remaining;
+
+            successRate.textContent = info.percentageUsed;
+
+            userApiKeys = [{
+                remaining: info.remaining,
+                totalUsed: info.totalUsed,
+                limit: info.limit
+            }];
+
+            updateUsageChart();
+        })
+        .catch(err => console.error(err));
 }
 
 function updateUsageChart() {
