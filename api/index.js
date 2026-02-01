@@ -146,8 +146,8 @@ function createKeyData(name, durationMs) {
   return {
     name: name,
     created: now.toISOString(),
-    limit: 20,
-    remaining: 20,
+    limit: 220,
+    remaining: 220,
     totalUsed: 0,
     usageHistory: [],
     lastUsed: null,
