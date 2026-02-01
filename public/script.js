@@ -750,6 +750,25 @@ function loadEndpoints() {
                 ]}
             ]
         },
+        
+        {
+  id: 'tiktoksearch',
+  name: 'TikTok Search',
+  description: 'Mencari video TikTok berdasarkan kata kunci.',
+  method: 'GET',
+  path: '/api/tiktoksearch',
+  icon: 'fab fa-tiktok',
+  color: '#000000',
+  parameters: [
+    {
+      name: 'query',
+      type: 'text',
+      required: true,
+      label: 'Kata Pencarian',
+      placeholder: 'matushka'
+    }
+  ]
+},
         {
     id: 'gemini',
     name: 'Gemini AI',

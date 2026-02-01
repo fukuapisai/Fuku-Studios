@@ -913,6 +913,57 @@ app.get('/api/tiktok', async (req, res) => {
   }
 });
 
+
+const axios = require('axios');
+
+app.get('/api/tiktoksearch', async (req, res) => {
+  try {
+    const query = req.query.query;
+    
+    if (!query) {
+      return res.status(400).json({
+        status: false,
+        message: 'Parameter "query" diperlukan',
+        example: '/api/tiktoksearch?query=Matshuka&api=API_KEY'
+      });
+    }
+    
+    const { data } = await axios.get(
+      'https://api.vreden.my.id/api/v1/search/tiktok',
+      {
+        params: { query }
+      }
+    );
+    
+    if (!data || data.status !== true) {
+      return res.status(404).json({
+        status: false,
+        creator: 'AhmadXyz',
+        api: 'fuku',
+        message: 'Data tidak ditemukan'
+      });
+    }
+    
+    res.status(200).json(
+      responseWithUsage(req, {
+        status: true,
+        creator: 'AhmadXyz',
+        api: 'fuku',
+        result: data.result,
+        timestamp: new Date().toISOString()
+      })
+    );
+    
+  } catch (error) {
+    res.status(500).json({
+      status: false,
+      creator: 'AhmadXyz',
+      api: 'fuku',
+      message: error.message || 'Terjadi kesalahan internal server'
+    });
+  }
+});
+
 // Turboseek AI
 app.get('/api/turboseek', async (req, res) => {
   try {
